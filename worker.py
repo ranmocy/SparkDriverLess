@@ -1,16 +1,16 @@
+#!/usr/bin/env python
+
 import StringIO
 import pickle
 
-import cloudpickle
 import gevent
 import zerorpc
 
-import rdd
 
 class Worker(object):
 
     def __init__(self):
-        #gevent.spawn(self.controller)
+        # gevent.spawn(self.controller)
         pass
 
     def controller(self):
@@ -18,14 +18,16 @@ class Worker(object):
             print "[Contoller]"
             gevent.sleep(1)
 
-    def hello(self, objstr):
-        input = StringIO.StringIO(objstr)
-        unpickler = pickle.Unpickler(input)
-        f = unpickler.load()
-        return str(f.collect())
+    def load(self, obj_str):
+        string_io = StringIO.StringIO(obj_str)
+        unpickler = pickle.Unpickler(string_io)
+        return unpickler.load()
 
-        return "ACK"
+    def hello(self, obj_str):
+        print 'done'
+        return str(self.load(obj_str).collect())
 
 s = zerorpc.Server(Worker())
 s.bind("tcp://0.0.0.0:4242")
+print 'running'
 s.run()

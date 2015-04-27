@@ -1,19 +1,14 @@
-import pickle
-import StringIO
+#!/usr/bin/env python
 
 import zerorpc
-import cloudpickle
-
 from rdd import *
 
-r = TextFile('myfile')
-m = Map(r, lambda s: s.split())
-f = Filter(m, lambda a: int(a[1]) > 2)
 
-output = StringIO.StringIO()
-pickler = cloudpickle.CloudPickler(output)
-pickler.dump(f)
-objstr = output.getvalue()
+f = TextFile('myfile')\
+.map(lambda s: s.split())\
+.filter(lambda a: int(a[1]) > 2)
+
+objstr = f.dump()
 
 c = zerorpc.Client()
 c.connect("tcp://127.0.0.1:4242")
