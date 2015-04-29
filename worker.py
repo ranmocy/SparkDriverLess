@@ -1,10 +1,10 @@
-#!/usr/bin/env python
-
 import StringIO
 import pickle
 
 import gevent
 import zerorpc
+
+from rdd import *
 
 
 class Worker(object):
@@ -27,7 +27,12 @@ class Worker(object):
         print 'done'
         return str(self.load(obj_str).collect())
 
-s = zerorpc.Server(Worker())
-s.bind("tcp://0.0.0.0:4242")
-print 'running'
-s.run()
+    def run(self, port):
+        s = zerorpc.Server(self)
+        address = "tcp://0.0.0.0:"+str(port)
+        s.bind(address)
+        print 'Worker is running at '+address
+        s.run()
+
+if __name__ == '__main__':
+    Worker().run()
