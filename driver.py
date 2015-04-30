@@ -28,19 +28,25 @@ def get_discover_listener(driver):
 class WorkerClient(object):
     def __init__(self, address):
         self.address = address
-        self.connection = None # lazy, can't initalize zerorpc connection in zeroconf thread
+        self._connection = None
 
     def __del__(self):
         print warn('Worker is closing.')
-        if self.connection is not None:
+        if self.connection:
             self.connection.close()
+
+    @property
+    def connection(self):
+        """lazy initalization.
+        Can not initalize zerorpc connection in zeroconf thread."""
+        if not self._connection:
+            self._connection = zerorpc.Client(heartbeat=1)
+            self._connection.connect(self.address)
+        return self._connection
 
     # Method missing, for delegate method call to RPC
     def __getattr__(self, name):
         def _missing(*args, **kwargs):
-            if self.connection is None:
-                self.connection = zerorpc.Client(heartbeat=1)
-                self.connection.connect(self.address)
             return getattr(self.connection, name)(*args, **kwargs)
         return _missing
 
@@ -66,7 +72,6 @@ class Driver(object):
     def add_worker(self, address):
         worker = WorkerClient(address)
         self.workers.append(worker)
-        print 'add' + str(worker.connection)
         print success('Add worker:'+address)
 
     def remove_worker(self, address):
@@ -84,9 +89,9 @@ class Driver(object):
         while True:
             worker = None
             try:
-                while worker is None:
+                while not worker:
                     worker = self.get_next_worker()
-                    if worker is None:
+                    if not worker:
                         print("No worker")
                         gevent.sleep(0.5)
                 print success('Got worker.')
