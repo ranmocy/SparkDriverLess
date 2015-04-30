@@ -11,25 +11,23 @@ DEFAULT_TYPE = '_http._tcp.local.'
 
 
 class Service(object):
-    logging.basicConfig(level=logging.DEBUG)
+    # logging.basicConfig(level=logging.DEBUG)
     # logging.getLogger('zeroconf').setLevel(logging.DEBUG)
 
-    def __init__(self, type=DEFAULT_TYPE, name='',
+    def __init__(self, type=DEFAULT_TYPE, name='SparkP2P',
                  address=socket.inet_aton("127.0.0.1"), port=9999,
                  properties=None, server=None):
         self.type = type
-        self.name = name
+        self.name = name + type # `name` must end with `type`
         self.address = address
         self.port = port
         self.properties = properties
         self.server = server
         self.zeroconf = Zeroconf()
-        self.info = None
-
-    def register(self):
         self.info = ServiceInfo(self.type, self.name, self.address, self.port,
                                 0, 0, self.properties, self.server)
-        self.zeroconf.register_service(info)
+        self.zeroconf.register_service(self.info)
+        print('Register '+self.name)
 
     def close(self):
         if self.info:
@@ -38,8 +36,8 @@ class Service(object):
 
 
 class Discover(object):
-    class DiscoverListener(object):
 
+    class DiscoverListener(object):
         def remove_service(self, zeroconf, type, name):
             print("Service %s removed" % (name,))
 
@@ -53,6 +51,7 @@ class Discover(object):
 
     def discover_service(self):
         self.browser = ServiceBrowser(self.zeroconf, DEFAULT_TYPE, self.listener)
+        return self
 
     def close(self):
         self.zeroconf.close()
