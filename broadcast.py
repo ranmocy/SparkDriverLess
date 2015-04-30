@@ -31,7 +31,8 @@ class Service(object):
 
     def close(self):
         if self.info:
-           self.zeroconf.unregister_service(self.info)
+            print('unregister')
+            self.zeroconf.unregister_service(self.info)
         self.zeroconf.close()
 
 
@@ -48,10 +49,7 @@ class Discover(object):
     def __init__(self, listener=DiscoverListener()):
         self.zeroconf = Zeroconf()
         self.listener = listener
-
-    def discover_service(self):
         self.browser = ServiceBrowser(self.zeroconf, DEFAULT_TYPE, self.listener)
-        return self
 
     def close(self):
         self.zeroconf.close()

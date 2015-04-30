@@ -8,24 +8,10 @@ import uuid
 import gevent
 import zerorpc
 
+from colors import *
+from helper import *
+from broadcast import Service
 from rdd import *
-
-
-def get_my_ip():
-    return subprocess.Popen(["hostname", "-I"], stdout=subprocess.PIPE).communicate()[0].strip()
-
-def get_open_port():
-    for i in range(10):
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind(("", 0))
-            s.listen(1)
-            port = s.getsockname()[1]
-            s.close()
-            return port
-        except Exception:
-            continue
-    return -1
 
 
 class Worker(object):
@@ -34,11 +20,19 @@ class Worker(object):
         self.uuid = uuid
         self.ip = ip
         self.port = port
-        self.address = 'tcp://'+str(self.ip)+':'+str(self.port)
+        self.address = get_my_address(port=self.port)
         self.server = zerorpc.Server(self)
         self.server.bind(self.address)
         self.thread = gevent.spawn(self.server.run)
+        self.service = Service(name='SparkP2P_'+self.uuid, port=self.port, properties=self.get_properties())
         print 'Worker '+self.uuid+' is running at '+self.address
+
+    def __del__(self):
+        self.service.close()
+        print success('service closed')
+
+    def get_properties(self):
+        return {'uuid': self.uuid, 'address': self.address}
 
     def join(self):
         self.thread.join()
@@ -57,4 +51,6 @@ class Worker(object):
 
 
 if __name__ == '__main__':
-    Worker().join()
+    worker = Worker()
+    bind_signal_handler(worker)
+    worker.join()
