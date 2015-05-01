@@ -4,6 +4,7 @@ import logging
 
 from worker import Worker
 from driver import Driver
+from rdd import Context
 from helper import *
 from cli import CLI
 
@@ -22,12 +23,4 @@ import atexit
 atexit.register(close_all)
 del atexit
 
-
-class Context(object):
-    def __init__(self):
-        self.worker = worker
-        self.driver = driver
-        self.workers = driver.workers
-
-
-CLI(local={'context':Context()})
+CLI(local={'context':Context(worker=worker, driver=driver)})

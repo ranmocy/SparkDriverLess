@@ -1,0 +1,6 @@
+- [ ] Score system:
+    - [ ] Worker: measure time and record
+    - [ ] Worker: priority jobs queue
+    - [ ] Worker: reject if score is less than -100
+- [ ] Application, small data set, heavy computation workload:
+    - [ ] Password hacking

@@ -2,9 +2,20 @@ import StringIO
 import cloudpickle
 
 
+class Context(object):
+    def __init__(self, worker=None, driver=None):
+        self.worker = worker
+        self.driver = driver
+        if not self.driver:
+            self.workers = driver.workers
+
+    def textFile(self, filename):
+        return TextFile(self, filename)
+
+
 class RDD(object):
-    def __init__(self):
-        pass
+    def __init__(self, context):
+        self.context = context
 
     def dump(self):
         output = StringIO.StringIO()
@@ -12,11 +23,11 @@ class RDD(object):
         return output.getvalue()
 
     def map(self, *arg):
-        return Map(self, *arg)
+        return Map(self.context, self, *arg)
     def filter(self, *arg):
-        return Filter(self, *arg)
+        return Filter(self.context, self, *arg)
     # def reduce(self, *arg):
-    #   return Reduce(self, *arg)
+    #   return Reduce(self.context, self, *arg)
 
     def collect(self):
         elements = []
@@ -35,8 +46,8 @@ class RDD(object):
 
 
 class TextFile(RDD):
-    def __init__(self, filename):
-        super(TextFile, self).__init__()
+    def __init__(self, context, filename):
+        super(TextFile, self).__init__(context)
         self.filename = filename
         self.lines = None
         self.index = 0
@@ -55,8 +66,8 @@ class TextFile(RDD):
 
 
 class Map(RDD):
-    def __init__(self, parent, func):
-        super(Map, self).__init__()
+    def __init__(self, context, parent, func):
+        super(Map, self).__init__(context)
         self.parent = parent
         self.func = func
 
@@ -70,8 +81,8 @@ class Map(RDD):
 
 
 class Filter(RDD):
-    def __init__(self, parent, func):
-        super(Filter, self).__init__()
+    def __init__(self, context, parent, func):
+        super(Filter, self).__init__(context)
         self.parent = parent
         self.func = func
 
@@ -86,5 +97,6 @@ class Filter(RDD):
 
 
 if __name__ == '__main__':
-    f = TextFile('myfile').map(lambda s: s.split()).filter(lambda a: int(a[1]) > 2)
+    context = Context()
+    f = context.textFile('myfile').map(lambda s: s.split()).filter(lambda a: int(a[1]) > 2)
     print f.collect()
