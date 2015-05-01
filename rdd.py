@@ -86,7 +86,5 @@ class Filter(RDD):
 
 
 if __name__ == '__main__':
-    r = TextFile('myfile')
-    m = Map(r, lambda s: s.split())
-    f = Filter(m, lambda a: int(a[1]) > 2)
+    f = TextFile('myfile').map(lambda s: s.split()).filter(lambda a: int(a[1]) > 2)
     print f.collect()

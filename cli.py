@@ -28,11 +28,12 @@ del os, atexit, readline, rlcompleter, save_history, historyPath
 
 # Interactive CLI
 class CLI(code.InteractiveConsole):
-    def __init__(self, locals=None, filename="<console>", histfile=None):
-        self._green_stdin = fileobject.FileObject(sys.stdin)
-        self._green_stdout = fileobject.FileObject(sys.stdout)
+    def __init__(self, local=None, filename="<console>", histfile=None):
+        # Pre-defined
+        local['run'] = self.run
+        local['run_file'] = self.run_file
 
-        code.InteractiveConsole.__init__(self, locals, filename)
+        code.InteractiveConsole.__init__(self, local, filename)
         try:
             import readline
         except ImportError:
@@ -40,17 +41,28 @@ class CLI(code.InteractiveConsole):
         else:
             try:
                 import rlcompleter
-                readline.set_completer(rlcompleter.Completer(locals).complete)
+                readline.set_completer(rlcompleter.Completer(local).complete)
             except ImportError:
                 pass
             readline.parse_and_bind("tab: complete")
 
-        # Preload rdds
-        self.runcode(code.compile_command("from rdd import *"))
-
+        # Pre-loaded
+        self.run("from rdd import *")
         self.interact("Welcome to SparkP2P!")
 
+    def run(self, code_string):
+        return_value = None
+        for line in code_string.split("\n"):
+           return_value = self.runcode(code.compile_command(line))
+        return return_value
+
+    def run_file(self, filename):
+        with open(filename, 'r') as f:
+            return self.run(f.read().rstrip())
+
     # def raw_input(self, prompt):
+    #     self._green_stdin = fileobject.FileObject(sys.stdin)
+    #     self._green_stdout = fileobject.FileObject(sys.stdout)
     #     """Override default input function"""
     #     self._green_stdout.write("SparkP2P>>>")
     #     return self._green_stdin.readline()[:-1]
