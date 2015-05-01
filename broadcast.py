@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 
-import socket
 import logging
+import socket
 import sys
 from time import sleep
 
 from zeroconf import ServiceBrowser, Zeroconf, ServiceInfo
 
+
 DEFAULT_TYPE = '_http._tcp.local.'
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARN)
 
 
 class Service(object):
-    # logging.basicConfig(level=logging.DEBUG)
-    # logging.getLogger('zeroconf').setLevel(logging.DEBUG)
 
     def __init__(self, type=DEFAULT_TYPE, name='SparkP2P',
                  address=socket.inet_aton("127.0.0.1"), port=9999,
@@ -27,11 +28,11 @@ class Service(object):
         self.info = ServiceInfo(self.type, self.name, self.address, self.port,
                                 0, 0, self.properties, self.server)
         self.zeroconf.register_service(self.info)
-        print('Register '+self.name)
+        logger.debug('Register '+self.name)
 
     def close(self):
         if self.info:
-            print('unregister')
+            logger.debug('unregister')
             self.zeroconf.unregister_service(self.info)
         self.zeroconf.close()
 
@@ -40,11 +41,11 @@ class Discover(object):
 
     class DiscoverListener(object):
         def remove_service(self, zeroconf, type, name):
-            print("Service %s removed" % (name,))
+            logger.debug("Service %s removed" % (name,))
 
         def add_service(self, zeroconf, type, name):
             info = zeroconf.get_service_info(type, name)
-            print("Service %s added, service info: %s" % (name, info))
+            logger.debug("Service %s added, service info: %s" % (name, info))
 
     def __init__(self, listener=DiscoverListener()):
         self.zeroconf = Zeroconf()

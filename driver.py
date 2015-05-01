@@ -1,3 +1,4 @@
+import logging
 import StringIO
 from collections import deque
 import pickle
@@ -6,9 +7,12 @@ import gevent
 import zerorpc
 
 from helper import bind_signal_handler
-from colors import success, warn, error
 from broadcast import Discover
 from rdd import *
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARN)
 
 
 def get_discover_listener(driver):
@@ -16,12 +20,12 @@ def get_discover_listener(driver):
         def add_service(self, zeroconf, type, name):
             info = zeroconf.get_service_info(type, name)
             driver.add_worker(info.properties['address'])
-            print success("Service found: %s" % info.properties['address'])
+            logger.info("Service found: %s" % info.properties['address'])
 
         def remove_service(self, zeroconf, type, name):
             address = name.replace('SparkP2P_', '').replace(type, '')
             driver.remove_worker(address)
-            print success("Service removed: %s" % (name,))
+            logger.info("Service removed: %s" % (name,))
     return DiscoverListener()
 
 
@@ -31,7 +35,7 @@ class WorkerClient(object):
         self._connection = None
 
     def __del__(self):
-        print warn('Worker is closing.')
+        logger.warning('Worker is closing.')
         if self.connection:
             self.connection.close()
 
@@ -59,7 +63,7 @@ class Driver(object):
 
     def __del__(self):
         self.discover.close()
-        print success('discover closed')
+        logger.info('discover closed')
 
     def join(self):
         self.thread.join()
@@ -67,12 +71,12 @@ class Driver(object):
     def do_job(self, worker):
         f = TextFile('myfile').map(lambda s: s.split()).filter(lambda a: int(a[1]) > 2)
         string = f.dump()
-        print worker.run(string)
+        logger.debug(worker.run(string))
 
     def add_worker(self, address):
         worker = WorkerClient(address)
         self.workers.append(worker)
-        print success('Add worker:'+address)
+        logger.info('Add worker:'+address)
 
     def remove_worker(self, address):
         for worker in list(self.workers):
@@ -92,15 +96,15 @@ class Driver(object):
                 while not worker:
                     worker = self.get_next_worker()
                     if not worker:
-                        print("No worker")
+                        logger.debug("No worker")
                         gevent.sleep(0.5)
-                print success('Got worker.')
+                logger.info('Got worker.')
                 self.do_job(worker)
-                print success('Finished')
+                logger.info('Finished')
             except zerorpc.exceptions.LostRemote:
                 worker = None
             except Exception, e:
-                print error(e)
+                logger.critical(str(e))
             finally:
                 if worker:
                     self.workers.append(worker)
