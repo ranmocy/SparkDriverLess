@@ -2,9 +2,15 @@
 
 import subprocess
 
+from worker import Worker
+from driver import Driver
+from helper import *
 from colors import success, warn
 
 
-worker = subprocess.Popen(['python', 'worker.py'])
-driver = subprocess.Popen(['python', 'driver.py'])
-print [p.wait() for p in worker, driver] # exitcodes
+worker = Worker()
+driver = Driver()
+bind_signal_handler(worker)
+bind_signal_handler(driver)
+worker.join()
+driver.join()
