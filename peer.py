@@ -16,8 +16,8 @@ worker = Worker()
 driver = Driver()
 
 def close_all():
-    worker.close()
-    driver.close()
+    worker.__del__()
+    driver.__del__()
 
 import atexit
 atexit.register(close_all)

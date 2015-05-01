@@ -48,6 +48,9 @@ class CLI(code.InteractiveConsole):
 
         # Pre-loaded
         self.run("from rdd import *")
+        # FIXME:
+        self.run_file('myscript.py')
+
         self.interact("Welcome to SparkP2P!")
 
     def run(self, code_string):
