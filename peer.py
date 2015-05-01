@@ -1,28 +1,19 @@
 #!/usr/bin/env python
 
-import subprocess
-import sys
-import code
-
-from gevent import fileobject
+import logging
 
 from worker import Worker
 from driver import Driver
 from helper import *
-from colors import success, warn
+from cli import CLI
 
 
 logging.basicConfig(level=logging.WARN, filename='peer.log', filemode='a')
 
-_green_stdin = fileobject.FileObject(sys.stdin)
-_green_stdout = fileobject.FileObject(sys.stdout)
 
-def _green_raw_input(prompt):
-    _green_stdout.write(prompt)
-    return _green_stdin.readline()[:-1]
-
-def run_console(local=None, prompt=">>>"):
-    code.interact(prompt, _green_raw_input, local=local or {})
+class Context(object):
+    def __init__(self, workers):
+        self.workers = workers
 
 
 worker = Worker()
@@ -32,4 +23,6 @@ bind_signal_handler(driver)
 # worker.join()
 # driver.join()
 
-run_console()
+context = Context(driver.workers)
+# run_console({'context':context})
+CLI(locals={'context':context})
