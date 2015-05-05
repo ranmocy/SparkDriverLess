@@ -10,7 +10,6 @@ from zeroconf import ServiceBrowser, Zeroconf, ServiceInfo
 
 DEFAULT_TYPE = '_http._tcp.local.'
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARN)
 
 
 class Service(object):

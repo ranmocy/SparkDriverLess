@@ -9,7 +9,7 @@ from helper import *
 from cli import CLI
 
 
-logging.basicConfig(level=logging.WARN, filename='peer.log', filemode='a')
+logging.basicConfig(level=logging.INFO, filename='peer.log', filemode='a')
 
 
 worker = Worker()

@@ -16,7 +16,6 @@ from rdd import *
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARN)
 
 
 class Worker(object):

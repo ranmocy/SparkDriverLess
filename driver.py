@@ -12,7 +12,6 @@ from rdd import *
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARN)
 
 
 def get_discover_listener(driver):

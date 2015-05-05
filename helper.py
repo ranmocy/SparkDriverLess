@@ -8,7 +8,6 @@ from colors import warn
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARN)
 
 
 def get_open_port():
