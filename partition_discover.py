@@ -1,6 +1,7 @@
 import atexit
 import logging
 from collections import deque
+import zerorpc
 from broadcast import Discover, PARTITION_DISCOVER_TYPE
 
 __author__ = 'ranmocy'
@@ -36,3 +37,14 @@ class PartitionDiscover():
                            add_service_func=add_service,
                            remove_service_func=remove_service)
         atexit.register(lambda: scanner.close())
+
+    def get_partition(self, uuid):
+        if uuid in self.partitions:
+            for address in self.partitions[uuid]:
+                c = zerorpc.Client()
+                c.connect(address)
+                try:
+                    return c.fetch_partition(uuid)
+                except zerorpc.RemoteError, zerorpc.LostRemote:
+                    continue
+        return None

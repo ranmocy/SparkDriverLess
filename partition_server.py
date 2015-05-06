@@ -12,3 +12,6 @@ class PartitionServer():
 
     def add(self, uuid, result):
         pass
+
+    def remove(self, uuid):
+        pass
