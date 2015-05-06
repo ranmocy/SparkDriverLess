@@ -3,16 +3,11 @@ import StringIO
 import cloudpickle
 
 
-PARTITION_NUM = 2
-
-
 class Context(object):
     def __init__(self, worker=None, driver=None):
-        self.worker = worker
+        self.worker = worker  # my own worker
         self.driver = driver
-        if self.driver:
-            self.workers = driver.workers
-            PARTITION_NUM = len(self.workers)
+        self.workers = driver.workers
 
     def textFile(self, filename):
         return TextFile(self, filename)
@@ -37,7 +32,20 @@ class Partition(object):
 class RDD(object):
     def __init__(self, context):
         self.context = context
-        self.partitions = [Partition(self, i) for i in range(PARTITION_NUM)]
+
+        if self.parent is not None:
+            self.worker_addresses = self.parent.worker_addresses
+        if self.driver:
+            self.worker_addresses = [w.address for w in driver.workers]
+
+        self.partition_num = len(context.worker_addresses)
+        print self.partition_num
+
+        # FIXME: for local debug
+        if self.partition_num < 2:
+            self.partition_num = 2
+
+        self.partitions = [Partition(self, i) for i in range(self.partition_num)]
 
     def dump(self):
         output = StringIO.StringIO()
@@ -72,9 +80,9 @@ class TextFile(RDD):
 
     def get(self, part_id):
         size = os.path.getsize(self.filename)
-        length = size / PARTITION_NUM
+        length = size / self.partition_num
         offset = length * part_id
-        if part_id is PARTITION_NUM - 1:  # last one
+        if part_id is self.partition_num - 1:  # last one
             length = size - offset
 
         with open(self.filename) as handler:

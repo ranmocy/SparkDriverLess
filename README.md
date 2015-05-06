@@ -50,3 +50,7 @@
                     3. continue to next job
     4. add result to the result server
     5. broadcast this rdd
+
+
+## TODO
+1. prevent multiple worker to get the same job: lock?

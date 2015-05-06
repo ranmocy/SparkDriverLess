@@ -18,6 +18,32 @@ from rdd import *
 logger = logging.getLogger(__name__)
 
 
+# 1. broadcast a `worker` with new generated uuid, {address=ip:port}
+# 2. discover `job`, append to jobs
+# 3. discover `rdd`, append to rdds
+# 4. start a result server
+# 5. start a partions_server
+#     - TODO: if it's taken, set a timer.
+#     - If timout and no result, broadcast again since that worker is too slow.
+# 6. start a loop keep trying to get a job from jobs:
+#     1. connect to job's source, lock it up to prevent other workers to take it
+#     2. get the dumped_rdd, unload it
+#     3. run the target_rdd
+#         - if narrow_dependent:
+#             - do it right away
+#         - if wide_dependent:
+#             - try search dep_rdd in rdds
+#                 - if exists, fetch result from corresponding worker
+#                 - if doesn't exist, or previous try failed
+#                     1. for every partion of dep_rdd:
+#                         1. append to partions_server
+#                         2. broadcast a `job` with partition uuid
+#                     2. append current job back to jobs
+#                     3. DONT sleep(NETWORK_LATENCY * 2). it's better to it locally to avoid network transfer
+#                     3. continue to next job
+#     4. add result to the result server
+#     5. broadcast this rdd
+
 class Worker(object):
 
     def __init__(self, uuid=str(uuid.uuid1()), ip=get_my_ip(), port=get_open_port()):
