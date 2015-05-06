@@ -1,48 +1,18 @@
+import atexit
 import logging
-import socket
-import sys
-import subprocess
-import StringIO
 import pickle
-import uuid
 
-import gevent
-import zerorpc
-
-from colors import *
-from helper import *
+from helper import get_my_ip, get_my_address, get_open_port
 from broadcast import Service
+from job_discover import JobDiscover
+from partition_discover import PartitionDiscover
+from partition_server import PartitionServer
 from rdd import *
+from result_server import ResultServer
 
 
 logger = logging.getLogger(__name__)
 
-
-# 1. broadcast a `worker` with new generated uuid, {address=ip:port}
-# 2. discover `job`, append to jobs
-# 3. discover `rdd`, append to rdds
-# 4. start a result server
-# 5. start a partions_server
-#     - TODO: if it's taken, set a timer.
-#     - If timout and no result, broadcast again since that worker is too slow.
-# 6. start a loop keep trying to get a job from jobs:
-#     1. connect to job's source, lock it up to prevent other workers to take it
-#     2. get the dumped_rdd, unload it
-#     3. run the target_rdd
-#         - if narrow_dependent:
-#             - do it right away
-#         - if wide_dependent:
-#             - try search dep_rdd in rdds
-#                 - if exists, fetch result from corresponding worker
-#                 - if doesn't exist, or previous try failed
-#                     1. for every partion of dep_rdd:
-#                         1. append to partions_server
-#                         2. broadcast a `job` with partition uuid
-#                     2. append current job back to jobs
-#                     3. DONT sleep(NETWORK_LATENCY * 2). it's better to it locally to avoid network transfer
-#                     3. continue to next job
-#     4. add result to the result server
-#     5. broadcast this rdd
 
 class Worker(object):
 
@@ -51,10 +21,8 @@ class Worker(object):
         self.ip = ip
         self.port = port
         self.address = get_my_address(port=self.port)
-        self.server = zerorpc.Server(self)
-        self.server.bind(self.address)
-        self.thread = gevent.spawn(self.server.run)
         self.service = Service(name='SparkP2P_'+self.uuid, port=self.port, properties=self.get_properties())
+        atexit.register(lambda: self.__del__())
         logger.info('Worker '+self.uuid+' is running at '+self.address)
 
     def __del__(self):
@@ -63,9 +31,6 @@ class Worker(object):
 
     def get_properties(self):
         return {'uuid': self.uuid, 'address': self.address}
-
-    def join(self):
-        self.thread.join()
 
     def load(self, obj_str):
         string_io = StringIO.StringIO(obj_str)
@@ -76,11 +41,28 @@ class Worker(object):
         logger.info('Hello')
         return 'Alive'
 
-    def run(self, obj_str):
+    def run_code(self, obj_str):
         return str(self.load(obj_str).collect())
 
 
 if __name__ == '__main__':
+    # 1. broadcast a `worker` with new generated uuid, {address=ip:port}
     worker = Worker()
-    bind_signal_handler(worker)
-    worker.join()
+    # 2. discover `job`, append to jobs
+    job_discover = JobDiscover()
+    # 3. discover `partitions`, append to partitions
+    partition_discover = PartitionDiscover()
+    # 4. start a result server
+    result_server = ResultServer()
+    # 5. start a partitions_server
+    partition_server = PartitionServer()
+    # 6. start a loop keep trying to get a job from jobs:
+    while True:
+        job = job_discover.take_next_job()  # block here
+        # 1. connect to job's source, lock it up to prevent other workers to take it
+
+        # 2. get the dumped_rdd, unload it
+        # 3. run the target_rdd
+        # 4. add result to the result server
+        # 5. broadcast this rdd
+        pass

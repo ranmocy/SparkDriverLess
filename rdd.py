@@ -1,29 +1,20 @@
 import os
 import StringIO
+import uuid
+import zerorpc
 import cloudpickle
 
+from helper import lazy_property, lazy
 
-#     - when transition:
-#         1. create rdd lineage
-#     - when action:
-#         1. create partitions from rdds (partition_num = len(workers))
-#         2. try search target_rdd in rdds
-#             - if exists, fetch result from corresponding worker
-#             - if doesn't exist, or previous try failed
-#                 - for every partition of target_rdd:
-#                     1. append to partitions_server
-#                     2. broadcast a `job` with partition uuid
-#         3. keep discovering rdds until found the target_rdd
-#         4. stop broadcast the `job`
-#         5. retrieve result of the rdd
 
 class Context(object):
-    def __init__(self, worker=None, driver=None):
-        self.worker = worker  # my own worker
-        self.driver = driver
+    def __init__(self, worker_discover=None, partition_discover=None, partition_server=None):
+        self.workers = worker_discover
+        self.rdds = partition_discover
+        self.partition_server = partition_server
 
     def textFile(self, filename):
-        return TextFile(self, filename)
+        return TextFile(filename, context=self)
 
 
 class Partition(object):
@@ -32,27 +23,19 @@ class Partition(object):
         super(Partition, self).__init__()
         self.rdd = rdd
         self.part_id = part_id
-        self.data = None
 
+    @lazy
     def get(self):
-        if self.data is None:
-            self.data = []
-            for element in self.rdd.get(self.part_id):
-                self.data.append(element)
-        return self.data
+        return self.rdd.get(self)
 
 
 class RDD(object):
-    def __init__(self, context):
-        self.context = context
-        self.partition_num = len(context.worker_addresses)
-        print self.partition_num
-
-        # FIXME: for local debug
-        if self.partition_num < 2:
-            self.partition_num = 2
-
-        self.partitions = [Partition(self, i) for i in range(self.partition_num)]
+    def __init__(self, context=None):
+        """[parent,func] or [context], one and only one."""
+        self.uuid = str(uuid.uuid1())
+        self.parent = None
+        self.func = None
+        self._context = context
 
     def dump(self):
         output = StringIO.StringIO()
@@ -61,10 +44,50 @@ class RDD(object):
 
     def map(self, *arg):
         return Map(self.context, self, *arg)
+
     def filter(self, *arg):
         return Filter(self.context, self, *arg)
+
     # def reduce(self, *arg):
     #   return Reduce(self.context, self, *arg)
+
+    @lazy_property
+    def context(self):
+        if self._context:
+            return self._context
+        if self.parent:
+            return self.parent.get_context()
+        return None
+
+    @lazy_property
+    def partition_num(self):
+        if self.parent:
+            num = self.parent.partition_num
+        else:
+            num = len(self.context.workers)
+        # FIXME: for local debug
+        print num
+        if num < 2:
+            num = 2
+        return num
+
+    # GetPartition
+    #     - when transition:
+    #         1. create rdd lineage
+    #     - when action:
+    #         1. create partitions from rdds (partition_num = len(workers))
+    #         2. try search target_rdd in rdds
+    #             - if exists, fetch result from corresponding worker
+    #             - if doesn't exist, or previous try failed
+    #                 - for every partition of target_rdd:
+    #                     1. append to partitions_server
+    #                     2. broadcast a `job` with partition uuid
+    #         3. keep discovering rdds until found the target_rdd
+    #         4. stop broadcast the `job`
+    #         5. retrieve result of the rdd
+    @lazy_property
+    def partitions(self):
+        return [Partition(self, i) for i in range(self.partition_num)]
 
     def collect(self):
         elements = []
@@ -76,15 +99,46 @@ class RDD(object):
     def count(self):
         return len(self.collect())
 
+    # Run
+    # - if narrow_dependent:
+    #     - do it right away
+    @lazy
     def get(self, part_id):
         raise Exception("Need to be implemented in subclass.")
 
+    def add_partition_to_server(self, part_id):
+        self.context.partition_server.add(self.uuid, part_id, self.get(part_id))
+
+    # - if wide_dependent:
+    def get_wide(self, part_id):
+        # - try search dep_partitions in rdds
+        if self.uuid in self.context.rdds:
+            # - if exists, fetch result from corresponding worker
+            for address in self.context.rdds[self.uuid]:
+                c = zerorpc.Client()
+                c.connect(address)
+                try:
+                    return c.fetch_rdd(self.uuid)
+                except zerorpc.RemoteError, zerorpc.LostRemote:
+                    continue
+        # - if doesn't exist, or previous try failed
+        # 1. for every partition of dep_rdd:
+
+        #     1. append to partitions_server
+        #     2. broadcast a `job` with partition uuid
+        # 2. append current job back to jobs
+        # 3. DO NOT sleep(NETWORK_LATENCY * 2). it's better to it locally to avoid network transfer
+        # 3. continue to next job
+
+            pass
+
 
 class TextFile(RDD):
-    def __init__(self, context, filename):
-        super(TextFile, self).__init__(context)
+    def __init__(self, filename, context=None):
+        super(TextFile, self).__init__(context=context)
         self.filename = filename
 
+    @lazy
     def get(self, part_id):
         size = os.path.getsize(self.filename)
         length = size / self.partition_num
@@ -105,26 +159,32 @@ class TextFile(RDD):
 
 
 class Map(RDD):
-    def __init__(self, context, parent, func):
-        super(Map, self).__init__(context)
+    def __init__(self, parent, func):
+        super(Map, self).__init__()
         self.parent = parent
         self.func = func
 
+    @lazy
     def get(self, part_id):
-        for element in self.parent.get(part_id):
-            yield self.func(element)
+        result = []
+        for element in self.parent.get():
+            result.append(self.func(element))
+        return result
 
 
 class Filter(RDD):
-    def __init__(self, context, parent, func):
-        super(Filter, self).__init__(context)
+    def __init__(self, parent, func):
+        super(Filter, self).__init__()
         self.parent = parent
         self.func = func
 
+    @lazy
     def get(self, part_id):
-        for element in self.parent.get(part_id):
+        result = []
+        for element in self.parent.get():
             if self.func(element):
-                yield element
+                result.append(element)
+        return result
 
 
 if __name__ == '__main__':

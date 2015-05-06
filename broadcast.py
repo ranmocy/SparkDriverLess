@@ -8,7 +8,8 @@ from zeroconf import ServiceBrowser, Zeroconf, ServiceInfo
 
 DEFAULT_TYPE = '_http._tcp.local.'
 WORKER_DISCOVER_TYPE = '_http._tcp.worker.'
-RDD_DISCOVER_TYPE = '_http._tcp.rdd.'
+PARTITION_DISCOVER_TYPE = '_http._tcp.rdd.'
+JOB_DISCOVER_TYPE = '_http._tcp.job.'
 logger = logging.getLogger(__name__)
 
 

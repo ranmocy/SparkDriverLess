@@ -43,3 +43,22 @@ def bind_signal_handler(obj):
             sys.exit()
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
+
+
+def lazy_property(fn):
+    attr_name = '_lazy_' + fn.__name__
+    @property
+    def _lazy_prop(self):
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, fn(self))
+        return getattr(self, attr_name)
+    return _lazy_prop
+
+
+def lazy(fn):
+    def _lazy_func(self, *args):
+        attr_name = '_lazy_func_' + fn.__name__ + str(args)
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, fn(self, *args))
+        return getattr(self, attr_name)
+    return _lazy_func
