@@ -4,7 +4,6 @@ from collections import deque
 import logging
 
 from broadcast import Discover, WORKER_DISCOVER_TYPE, RDD_DISCOVER_TYPE
-from partition_server import PartitionServer
 from rdd import Context
 from cli import CLI
 
@@ -51,6 +50,13 @@ def discover_rdds(rdd_list):
     atexit.register(lambda: scanner.close())
 
 
+class PartitionServer():
+    # - TODO: if it's taken, set a timer.
+    #     - If timeout and no result, broadcast again since that worker is too slow.
+    def __init__(self):
+        pass
+
+
 if __name__ == '__main__':
     # 1. discover `worker`, append to workers
     workers = deque()
@@ -61,23 +67,7 @@ if __name__ == '__main__':
     discover_rdds(rdds)
 
     # 3. start partitions_server
-    # - TODO: if it's taken, set a timer.
-    #     - If timeout and no result, broadcast again since that worker is too slow.
     partition_server = PartitionServer()
 
     # 4. start console for the user
-    CLI(local={'context': Context(worker=worker, driver=driver)})
-
-    #     - when transition:
-    #         1. create rdd lineage
-    #     - when action:
-    #         1. create partitions from rdds (partition_num = len(workers))
-    #         2. try search target_rdd in rdds
-    #             - if exists, fetch result from corresponding worker
-    #             - if doesn't exist, or previous try failed
-    #                 - for every partition of target_rdd:
-    #                     1. append to partitions_server
-    #                     2. broadcast a `job` with partition uuid
-    #         3. keep discovering rdds until found the target_rdd
-    #         4. stop broadcast the `job`
-    #         5. retrieve result of the rdd
+    CLI(local={'context': Context()})

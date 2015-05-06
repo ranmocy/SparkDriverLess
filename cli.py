@@ -1,34 +1,28 @@
-import sys
 import code
-import readline
-import rlcompleter
-
-from gevent import fileobject
-
-
-# Save readline history
-# https://docs.python.org/2/tutorial/interactive.html
 import atexit
 import os
 import readline
-import rlcompleter
-
-historyPath = os.path.expanduser("~/.pyhistory")
-
-def save_history(historyPath=historyPath):
-    import readline
-    readline.write_history_file(historyPath)
-
-if os.path.exists(historyPath):
-    readline.read_history_file(historyPath)
-
-atexit.register(save_history)
-del os, atexit, readline, rlcompleter, save_history, historyPath
 
 
 # Interactive CLI
+def load_history(history_file):
+    # Save readline history
+    # https://docs.python.org/2/tutorial/interactive.html
+    if os.path.exists(history_file):
+        readline.read_history_file(history_file)
+
+    def save_history():
+        import readline
+
+        readline.write_history_file(history_file)
+
+    atexit.register(save_history)
+
+
 class CLI(code.InteractiveConsole):
-    def __init__(self, local=None, filename="<console>", histfile=None):
+    def __init__(self, local=None, filename="<console>", history_file=os.path.expanduser("~/.pyhistory")):
+        load_history(history_file)
+
         # Pre-defined
         local['run'] = self.run
         local['run_file'] = self.run_file
@@ -41,6 +35,7 @@ class CLI(code.InteractiveConsole):
         else:
             try:
                 import rlcompleter
+
                 readline.set_completer(rlcompleter.Completer(local).complete)
             except ImportError:
                 pass
@@ -56,7 +51,7 @@ class CLI(code.InteractiveConsole):
     def run(self, code_string):
         return_value = None
         for line in code_string.split("\n"):
-           return_value = self.runcode(code.compile_command(line))
+            return_value = self.runcode(code.compile_command(line))
         return return_value
 
     def run_file(self, filename):

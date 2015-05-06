@@ -3,11 +3,24 @@ import StringIO
 import cloudpickle
 
 
+#     - when transition:
+#         1. create rdd lineage
+#     - when action:
+#         1. create partitions from rdds (partition_num = len(workers))
+#         2. try search target_rdd in rdds
+#             - if exists, fetch result from corresponding worker
+#             - if doesn't exist, or previous try failed
+#                 - for every partition of target_rdd:
+#                     1. append to partitions_server
+#                     2. broadcast a `job` with partition uuid
+#         3. keep discovering rdds until found the target_rdd
+#         4. stop broadcast the `job`
+#         5. retrieve result of the rdd
+
 class Context(object):
     def __init__(self, worker=None, driver=None):
         self.worker = worker  # my own worker
         self.driver = driver
-        self.workers = driver.workers
 
     def textFile(self, filename):
         return TextFile(self, filename)
@@ -32,12 +45,6 @@ class Partition(object):
 class RDD(object):
     def __init__(self, context):
         self.context = context
-
-        if self.parent is not None:
-            self.worker_addresses = self.parent.worker_addresses
-        if self.driver:
-            self.worker_addresses = [w.address for w in driver.workers]
-
         self.partition_num = len(context.worker_addresses)
         print self.partition_num
 
