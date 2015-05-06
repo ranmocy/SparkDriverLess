@@ -1,3 +1,4 @@
+import logging
 import os
 import StringIO
 import uuid
@@ -7,10 +8,13 @@ import cloudpickle
 from helper import lazy_property, lazy
 
 
+logger = logging.getLogger(__name__)
+
+
 class Context(object):
     def __init__(self, worker_discover=None, partition_discover=None, partition_server=None):
-        self.workers = worker_discover
-        self.rdds = partition_discover
+        self.workers = worker_discover.workers
+        self.partitions = partition_discover.partitions
         self.partition_server = partition_server
 
     def textFile(self, filename):
@@ -24,9 +28,16 @@ class Partition(object):
         self.rdd = rdd
         self.part_id = part_id
 
+    @lazy_property
+    def uuid(self):
+        return self.rdd.uuid + ':' + self.part_id
+
     @lazy
     def get(self):
-        return self.rdd.get(self)
+        return self.rdd.get(self.part_id)
+
+    def add_to_partition_server(self):
+        self.rdd.context.partition_server.add(self.uuid, self.get())
 
 
 class RDD(object):
@@ -43,13 +54,13 @@ class RDD(object):
         return output.getvalue()
 
     def map(self, *arg):
-        return Map(self.context, self, *arg)
+        return Map(self, *arg)
 
     def filter(self, *arg):
-        return Filter(self.context, self, *arg)
+        return Filter(self, *arg)
 
     # def reduce(self, *arg):
-    #   return Reduce(self.context, self, *arg)
+    #   return Reduce(self, *arg)
 
     @lazy_property
     def context(self):
@@ -65,10 +76,7 @@ class RDD(object):
             num = self.parent.partition_num
         else:
             num = len(self.context.workers)
-        # FIXME: for local debug
-        print num
-        if num < 2:
-            num = 2
+        logger.debug('partition_num:' + str(num))
         return num
 
     # GetPartition
@@ -105,9 +113,6 @@ class RDD(object):
     @lazy
     def get(self, part_id):
         raise Exception("Need to be implemented in subclass.")
-
-    def add_partition_to_server(self, part_id):
-        self.context.partition_server.add(self.uuid, part_id, self.get(part_id))
 
     # - if wide_dependent:
     def get_wide(self, part_id):
@@ -146,6 +151,7 @@ class TextFile(RDD):
         if part_id is self.partition_num - 1:  # last one
             length = size - offset
 
+        lines = []
         with open(self.filename) as handler:
             handler.seek(offset)
             if part_id is not 0:  # unless it's first one, ignore the first line
@@ -155,7 +161,8 @@ class TextFile(RDD):
                 if len(line) is 0:  # reach the end of file
                     break
                 length -= len(line)
-                yield line
+                lines.append(line)
+        return lines
 
 
 class Map(RDD):

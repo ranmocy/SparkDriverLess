@@ -9,3 +9,6 @@ class PartitionServer():
     #     - If timeout and no result, broadcast again since that worker is too slow.
     def __init__(self):
         pass
+
+    def add(self, uuid, result):
+        pass
