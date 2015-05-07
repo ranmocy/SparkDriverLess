@@ -54,3 +54,4 @@
 
 ## TODO
 1. prevent multiple worker to get the same job: lock?
+2. worker partition_server = zerorpc.server(), `fetch_partition(uuid)`. Returns partition result in array

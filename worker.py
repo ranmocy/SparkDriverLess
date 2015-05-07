@@ -5,7 +5,6 @@ import pickle
 from helper import get_my_ip, get_my_address, get_open_port
 from broadcast import Service
 from job_discover import JobDiscover
-from partition_discover import PartitionDiscover
 from partition_server import PartitionServer
 from rdd import *
 from result_server import ResultServer
@@ -46,6 +45,8 @@ class Worker(object):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO, filename='client.log', filemode='a')
+
     # 1. broadcast a `worker` with new generated uuid, {address=ip:port}
     worker = Worker()
     # 2. discover `job`, append to jobs

@@ -5,4 +5,11 @@ logger = logging.getLogger(__name__)
 
 
 class ResultServer():
-    pass
+    def __init__(self):
+        pass
+
+    def add(self, uuid, result):
+        pass
+
+    def remove(self, uuid):
+        pass

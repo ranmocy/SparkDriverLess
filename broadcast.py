@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Service(object):
-    def __init__(self, type=DEFAULT_TYPE, name='SparkP2P',
+    def __init__(self, type=DEFAULT_TYPE, name='SparkDriverLess',
                  address=socket.inet_aton("127.0.0.1"), port=9999,
                  properties=None, server=None):
         self.type = type
@@ -29,10 +29,16 @@ class Service(object):
         self.zeroconf.register_service(self.info)
         logger.debug('Register ' + self.name)
 
-    def close(self):
+    def is_registered(self):
+        return self.info.name.lower() in self.zeroconf.services
+
+    def unregister(self):
         if self.info:
             logger.debug('unregister')
             self.zeroconf.unregister_service(self.info)
+
+    def close(self):
+        self.unregister()
         self.zeroconf.close()
 
 

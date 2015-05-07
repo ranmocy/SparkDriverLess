@@ -2,6 +2,7 @@ import logging
 import os
 import StringIO
 import uuid
+import gevent
 
 import zerorpc
 import cloudpickle
@@ -33,6 +34,7 @@ class Context(object):
 
 class Partition(object):
     """`part_id` starts from 0"""
+
     def __init__(self, rdd, part_id):
         super(Partition, self).__init__()
         self.rdd = rdd
@@ -41,7 +43,7 @@ class Partition(object):
 
     @lazy_property
     def uuid(self):
-        return self.rdd.uuid + ':' + self.part_id
+        return str(self.rdd.uuid) + ':' + str(self.part_id)
 
     @lazy
     def get(self):
@@ -70,24 +72,30 @@ class RDD(object):
         return Filter(self, *args)
 
     # def reduce(self, *args):
-    #   return Reduce(self, *args)
+    # return Reduce(self, *args)
 
     @lazy_property
     def partition_num(self):
         if self.parent:
             return self.parent.partition_num
         else:
-            return len(self.context.worker_discover.workers)
+            num = self.context.worker_discover.size()
+            return num if num >= 2 else 2
 
     # GetPartition
     # - when transition:
     #     1. create rdd lineage
     @lazy_property
     def partitions(self):
+        if self.parent is None:
+            return [Partition(self, i) for i in range(self.partition_num)]
+
         partitions = []
         parent_partitions = self.parent.partitions
-        if len(partitions) != len(parent_partitions):
-            raise Exception("partitions length mismatched with parent!")
+        if self.partition_num != len(parent_partitions):
+            print self
+            raise Exception(
+                "partitions length mismatched with parent!" + str(len(partitions)) + ',' + str(self.partition_num))
         for i in range(self.partition_num):
             p = Partition(self, i)
             p.parent_list = [parent_partitions[i]]
@@ -97,6 +105,7 @@ class RDD(object):
     # - when action:
     @lazy
     def collect(self):
+        print 'collect',
         elements = []
         # 1. create partitions from rdds (partition_num = len(workers))
         # 2. for every target_partition in partitions, find in partition_discover:
@@ -109,23 +118,28 @@ class RDD(object):
                 #     1. append to partition_server
                 #     2. broadcast a `job` with partition uuid
                 self.context.job_server.add(partition)
+        print elements
+
         # 3. keep discovering rdds until found the target_rdd
         while True:
+            print 'keep discovering',
             all_done = True
             for i in range(self.partition_num):
-                if elements[i] is not None:
-                    continue
-                partition = self.partitions[i]
-                # try to fetch again
-                elements[i] = self.context.partition_discover.get_partition(partition.uuid)
+                if elements[i] is None:
+                    print ' ' + str(i),
+                    # try to fetch again
+                    elements[i] = self.context.partition_discover.get_partition(self.partitions[i].uuid)
+                # if failed
                 if elements[i] is None:
                     all_done = False
-                    break
                 else:
                     # 4. stop broadcast the `job`
-                    self.context.job_server.remove(partition)
+                    self.context.job_server.remove(self.partitions[i])
+            print ""
             if all_done:
                 break
+            gevent.sleep(1)
+
         # 5. retrieve result of the rdd
         result = []
         for element in elements:
@@ -167,10 +181,6 @@ class TextFile(RDD):
     def __init__(self, filename):
         super(TextFile, self).__init__(None)
         self.filename = filename
-
-    @lazy_property
-    def partitions(self):
-        return [Partition(self, i) for i in range(self.partition_num)]
 
     @lazy
     def get(self, partition):
@@ -223,6 +233,7 @@ class Filter(RDD):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO, filename='client.log', filemode='a')
     context = Context()
     f = context.text_file('myfile').map(lambda s: s.split()).filter(lambda a: int(a[1]) > 2)
     print f.collect()

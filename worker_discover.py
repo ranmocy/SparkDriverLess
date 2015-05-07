@@ -26,3 +26,6 @@ class WorkerDiscover():
                            add_service_func=add_service,
                            remove_service_func=remove_service)
         atexit.register(lambda: scanner.close())
+
+    def size(self):
+        return len(self.workers)

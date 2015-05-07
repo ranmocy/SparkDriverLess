@@ -40,7 +40,8 @@ class PartitionDiscover():
 
     def get_partition(self, uuid):
         if uuid in self.partitions:
-            for address in self.partitions[uuid]:
+            # create a new list to prevent iteration error
+            for address in list(self.partitions[uuid]):
                 c = zerorpc.Client()
                 c.connect(address)
                 try:
