@@ -1,6 +1,7 @@
 import atexit
 import logging
 import threading
+
 import gevent
 import zerorpc
 
@@ -19,6 +20,7 @@ class JobServerHandler(object):
         self.server = zerorpc.Server(self)
         self.server.bind(self.address)
         self.thread = gevent.spawn(self.server.run)
+        logger.info("Job server started at " + self.address)
         self.lock = threading.Lock()
 
     def __del__(self):
@@ -28,14 +30,16 @@ class JobServerHandler(object):
         try:
             self.lock.acquire()
             if name not in self.services:  # job is finished
+                print 'finished job', name, self.services.keys()
                 return None
             service = self.services[name]
             if not service.is_registered():  # job is taken
+                print 'taken job'
                 return None
             service.unregister()
             # - TODO: if it's taken, set a timer.
             #     - If timeout and no result, broadcast again since that worker is dead, or too slow.
-            return service.partition
+            return service.partition.dump()
         finally:
             self.lock.release()
 
@@ -67,7 +71,7 @@ class JobServer(object):
         service = Service(name=name, type=JOB_DISCOVER_TYPE, port=self.port, properties=properties)
         service.partition = partition  # attach additional information for handler
         self.services[name] = service
-        logger.info('add job service:' + name)
+        logger.info('add job service:' + name + ' at ' + self.address)
 
     def remove(self, partition):
         name = service_name(partition)

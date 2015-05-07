@@ -1,9 +1,9 @@
+import StringIO
 import logging
 import os
-import StringIO
 import uuid
-import gevent
 
+import gevent
 import zerorpc
 import cloudpickle
 
@@ -14,6 +14,24 @@ from job_server import JobServer
 
 
 logger = logging.getLogger(__name__)
+
+
+class Partition(object):
+    def __init__(self, uuid=None, part_id=None, func=None):
+        self.rdd_uuid = uuid
+        self.part_id = part_id
+        self.uuid = str(uuid) + ':' + str(part_id)
+        self.func = func
+        self.parent_list = []
+
+    @lazy
+    def get(self):
+        return self.func(self)
+
+    def dump(self):
+        output = StringIO.StringIO()
+        cloudpickle.CloudPickler(output).dump(self)
+        return output.getvalue()
 
 
 @singleton
@@ -32,38 +50,13 @@ class Context(object):
         return TextFile(filename)
 
 
-class Partition(object):
-    """`part_id` starts from 0"""
-
-    def __init__(self, rdd, part_id):
-        super(Partition, self).__init__()
-        self.rdd = rdd
-        self.part_id = part_id
-        self.parent_list = []
-
-    @lazy_property
-    def uuid(self):
-        return str(self.rdd.uuid) + ':' + str(self.part_id)
-
-    @lazy
-    def get(self):
-        return self.rdd.get(self)
-
-    def add_to_partition_server(self):
-        self.rdd.context.partition_server.add(self.uuid, self.get())
-
-
 class RDD(object):
     def __init__(self, parent):
         """[parent,func] or [context], one and only one."""
         self.uuid = str(uuid.uuid1())
         self.parent = parent
         self.context = Context()
-
-    def dump(self):
-        output = StringIO.StringIO()
-        cloudpickle.CloudPickler(output).dump(self)
-        return output.getvalue()
+        self.get = None
 
     def map(self, *args):
         return Map(self, *args)
@@ -88,7 +81,7 @@ class RDD(object):
     @lazy_property
     def partitions(self):
         if self.parent is None:
-            return [Partition(self, i) for i in range(self.partition_num)]
+            return [Partition(uuid=self.uuid, part_id=i, func=self.get) for i in range(self.partition_num)]
 
         partitions = []
         parent_partitions = self.parent.partitions
@@ -97,7 +90,7 @@ class RDD(object):
             raise Exception(
                 "partitions length mismatched with parent!" + str(len(partitions)) + ',' + str(self.partition_num))
         for i in range(self.partition_num):
-            p = Partition(self, i)
+            p = Partition(uuid=self.uuid, part_id=i, func=self.get)
             p.parent_list = [parent_partitions[i]]
             partitions.append(p)
         return partitions
@@ -149,9 +142,6 @@ class RDD(object):
     # Run
     # - if narrow_dependent:
     #     - do it right away
-    @lazy
-    def get(self, partition):
-        raise Exception("Need to be implemented in subclass.")
 
     # - if wide_dependent:
     def get_wide(self, partition):
@@ -181,59 +171,53 @@ class TextFile(RDD):
     def __init__(self, filename):
         super(TextFile, self).__init__(None)
         self.filename = filename
+        partition_num = self.partition_num
 
-    @lazy
-    def get(self, partition):
-        part_id = partition.part_id
-        size = os.path.getsize(self.filename)
-        length = size / self.partition_num
-        offset = length * part_id
-        if part_id is self.partition_num - 1:  # last one
-            length = size - offset
+        def get(partition):
+            part_id = partition.part_id
+            size = os.path.getsize(filename)
+            length = size / partition_num
+            offset = length * part_id
+            if part_id is partition_num - 1:  # last one
+                length = size - offset
 
-        lines = []
-        with open(self.filename) as handler:
-            handler.seek(offset)
-            if part_id is not 0:  # unless it's first one, ignore the first line
-                handler.readline()
-            while length >= 0:  # read lines until to the end
-                line = handler.readline()
-                if len(line) is 0:  # reach the end of file
-                    break
-                length -= len(line)
-                lines.append(line)
-        return lines
+            lines = []
+            with open(filename) as handler:
+                handler.seek(offset)
+                if part_id is not 0:  # unless it's first one, ignore the first line
+                    handler.readline()
+                while length >= 0:  # read lines until to the end
+                    line = handler.readline()
+                    if len(line) is 0:  # reach the end of file
+                        break
+                    length -= len(line)
+                    lines.append(line)
+            return lines
+        self.get = get
 
 
 class Map(RDD):
     def __init__(self, parent, func):
         super(Map, self).__init__(parent)
-        self.func = func
 
-    @lazy
-    def get(self, partition):
-        result = []
-        for element in self.parent.get():
-            result.append(self.func(element))
-        return result
+        def get(partition):
+            assert len(partition.parent_list) == 1
+            return map(func, partition.parent_list[0].get())
+        self.get = get
 
 
 class Filter(RDD):
     def __init__(self, parent, func):
         super(Filter, self).__init__(parent)
-        self.func = func
 
-    @lazy
-    def get(self, partition):
-        result = []
-        for element in self.parent.get():
-            if self.func(element):
-                result.append(element)
-        return result
+        def get(partition):
+            assert len(partition.parent_list) == 1
+            return filter(func, partition.parent_list[0].get())
+        self.get = get
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, filename='client.log', filemode='a')
+    logging.basicConfig(level=logging.DEBUG, filename='client.log', filemode='a')
     context = Context()
     f = context.text_file('myfile').map(lambda s: s.split()).filter(lambda a: int(a[1]) > 2)
     print f.collect()

@@ -27,7 +27,7 @@ class Service(object):
         self.info = ServiceInfo(self.type, self.name, self.address, self.port,
                                 0, 0, self.properties, self.server)
         self.zeroconf.register_service(self.info)
-        logger.debug('Register ' + self.name)
+        # logger.debug('Register ' + self.name)
 
     def is_registered(self):
         return self.info.name.lower() in self.zeroconf.services

@@ -1,8 +1,7 @@
-import StringIO
 import atexit
 import logging
-import pickle
 import uuid
+import gevent
 
 from helper import get_my_ip, get_my_address, get_open_port
 from broadcast import Service
@@ -27,26 +26,17 @@ class Worker(object):
 
     def __del__(self):
         self.service.close()
-        logger.info('service closed')
 
     def get_properties(self):
         return {'uuid': self.uuid, 'address': self.address}
-
-    def load(self, obj_str):
-        string_io = StringIO.StringIO(obj_str)
-        unpickler = pickle.Unpickler(string_io)
-        return unpickler.load()
 
     def hello(self):
         logger.info('Hello')
         return 'Alive'
 
-    def run_code(self, obj_str):
-        return str(self.load(obj_str).collect())
-
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, filename='client.log', filemode='a')
+    logging.basicConfig(level=logging.DEBUG, filename='worker.log', filemode='a')
 
     # 1. broadcast a `worker` with new generated uuid, {address=ip:port}
     worker = Worker()
@@ -59,11 +49,14 @@ if __name__ == '__main__':
     # 5. start a partitions_server
     # 6. start a loop keep trying to get a job from jobs:
     while True:
-        job = job_discover.take_next_job_partition()  # block here
+        print('Fetching job...')
+        partition = job_discover.take_next_job_partition()  # block here
+        print partition.get()
         # 1. connect to job's source, lock it up to prevent other workers to take it
 
         # 2. get the dumped_rdd, unload it
         # 3. run the target_rdd
         # 4. add result to the result server
         # 5. broadcast this rdd
+        gevent.sleep(1)
         pass
