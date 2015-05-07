@@ -1,12 +1,13 @@
+import StringIO
 import atexit
 import logging
 import pickle
+import uuid
 
 from helper import get_my_ip, get_my_address, get_open_port
 from broadcast import Service
 from job_discover import JobDiscover
-from partition_server import PartitionServer
-from rdd import *
+from partition_discover import PartitionDiscover
 from result_server import ResultServer
 
 
@@ -20,7 +21,7 @@ class Worker(object):
         self.ip = ip
         self.port = port
         self.address = get_my_address(port=self.port)
-        self.service = Service(name='SparkP2P_'+self.uuid, port=self.port, properties=self.get_properties())
+        self.service = Service(name='SparkDriverLess_'+self.uuid, port=self.port, properties=self.get_properties())
         atexit.register(lambda: self.__del__())
         logger.info('Worker '+self.uuid+' is running at '+self.address)
 
@@ -56,10 +57,9 @@ if __name__ == '__main__':
     # 4. start a result server
     result_server = ResultServer()
     # 5. start a partitions_server
-    partition_server = PartitionServer()
     # 6. start a loop keep trying to get a job from jobs:
     while True:
-        job = job_discover.take_next_job()  # block here
+        job = job_discover.take_next_job_partition()  # block here
         # 1. connect to job's source, lock it up to prevent other workers to take it
 
         # 2. get the dumped_rdd, unload it

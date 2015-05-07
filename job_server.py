@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 class JobServerHandler(object):
-    def __init__(self, services):
+    def __init__(self, services, address=get_my_address(get_open_port())):
         self.services = services
-        self.address = get_my_address(get_open_port())
+        self.address = address
         self.server = zerorpc.Server(self)
         self.server.bind(self.address)
         self.thread = gevent.spawn(self.server.run)
@@ -50,7 +50,7 @@ class JobServer(object):
         self.port = get_open_port()
         self.address = get_my_address(port=self.port)
         self.services = {}
-        self.handler = JobServerHandler(self.services)
+        self.handler = JobServerHandler(self.services, address=self.address)
         atexit.register(lambda: self.__del__())
 
     def __del__(self):
@@ -63,7 +63,7 @@ class JobServer(object):
         if name in self.services:
             logger.warning('duplicated job service:' + name)
             return
-        properties = {'uuid': partition.uuid, 'address': self.address}
+        properties = {'name': name, 'uuid': partition.uuid, 'address': self.address}
         service = Service(name=name, type=JOB_DISCOVER_TYPE, port=self.port, properties=properties)
         service.partition = partition  # attach additional information for handler
         self.services[name] = service
