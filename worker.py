@@ -27,6 +27,7 @@ class Worker(object):
                                name='Spark_'+self.uuid, port=self.port, properties=self.get_properties())
         atexit.register(lambda: self.__del__())
         logger.info('Worker '+self.uuid+' is running at '+self.address)
+        print('Worker '+self.uuid+' is running at '+self.address)
 
     def __del__(self):
         self.service.close()

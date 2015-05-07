@@ -23,26 +23,25 @@ class Service(object):
         self.port = port
         self.properties = properties
         self.server = server
+        self.active = True
         self.zeroconf = Zeroconf()
         self.info = ServiceInfo(self.type, self.name, self.address, self.port,
                                 0, 0, self.properties, self.server)
-        self.register()
-
-    def is_registered(self):
-        return self.info.name.lower() in self.zeroconf.services
-
-    def register(self):
         self.zeroconf.register_service(self.info)
 
-    def unregister(self):
-        if self.is_registered():
-            logger.debug('unregister')
-            self.zeroconf.unregister_service(self.info)
+    def is_active(self):
+        return self.active
+
+    def activate(self):
+        self.active = True
+
+    def deactivate(self):
+        self.active = False
 
     def close(self):
-        logger.debug("close service:" + self.name)
-        self.unregister()
+        self.zeroconf.unregister_service(self.info)
         self.zeroconf.close()
+        logger.debug("closed service:" + self.name)
 
 
 class Discover(object):

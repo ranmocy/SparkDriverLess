@@ -26,6 +26,12 @@ class JobServerHandler(object):
     def __del__(self):
         self.thread.kill()
 
+    def re_register_after_timeout(self, service, timeout):
+        def reactivate(service):
+            service.activate()
+            logger.debug("Reactivated job:" + service.name)
+        gevent.spawn_later(timeout, reactivate, service)
+
     def take(self, name):
         try:
             self.lock.acquire()
@@ -33,16 +39,20 @@ class JobServerHandler(object):
                 print 'finished job', name
                 return None
             service = self.services[name]
-            if not service.is_registered():  # job is taken
+            if not service.is_active():  # job is taken
                 print 'taken job'
                 return None
-            # FIXME: should un-register to avoid multiple worker doing same job
-            service.unregister()
-            # - TODO: if it's taken, set a timer.
+
+            # De-activate to avoid multiple worker doing same job
+            service.deactivate()
+            logger.debug("Deactivated job:" + service.name)
+
+            # - if it's taken, set a timer.
             #     - If timeout and no result, broadcast again since that worker is dead, or too slow.
+            self.re_register_after_timeout(service, 10)
+
+            logger.debug("Return job:" + service.name)
             return service.partition.dump()
-        except Exception:
-            pass
         finally:
             self.lock.release()
 
