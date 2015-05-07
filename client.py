@@ -7,4 +7,5 @@ from cli import CLI
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, filename='client.log', filemode='a')
+    logging.info("\n=====Client Start=====\n")
     CLI(local={'context': Context()})

@@ -37,7 +37,7 @@ class JobServerHandler(object):
                 print 'taken job'
                 return None
             # FIXME: should un-register to avoid multiple worker doing same job
-            # service.unregister()
+            service.unregister()
             # - TODO: if it's taken, set a timer.
             #     - If timeout and no result, broadcast again since that worker is dead, or too slow.
             return service.partition.dump()
@@ -80,3 +80,5 @@ class JobServer(object):
         name = service_name(partition)
         if name in self.services:
             self.services[name].close()
+            del self.services[name]
+            logger.info('remove job service:'+name+' at '+self.address)

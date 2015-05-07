@@ -15,9 +15,10 @@ class WorkerDiscover():
 
         def add_service(zeroconf, type, name):
             info = zeroconf.get_service_info(type, name)
-            address = info.properties['address']
-            logger.debug("Worker added %s at %s." % (name, address))
-            workers[name] = address
+            if info:
+                address = info.properties['address']
+                workers[name] = address
+                logger.debug("Worker added %s at %s." % (name, address))
 
         def remove_service(zeroconf, type, name):
             logger.debug("Worker removed %s removed." % name)

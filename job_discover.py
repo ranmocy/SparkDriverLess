@@ -20,9 +20,10 @@ class JobDiscover():
 
         def add_service(zeroconf, type, name):
             info = zeroconf.get_service_info(type, name)
-            jobs[name] = info.properties
-            queue.append(name)
-            logger.debug("Job discovered %s at %s" % (name, info.properties['address']))
+            if info:
+                jobs[name] = info.properties
+                queue.append(name)
+                logger.debug("Job discovered %s at %s" % (name, info.properties['address']))
 
         def remove_service(zeroconf, type, name):
             if name in jobs:

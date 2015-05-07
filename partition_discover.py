@@ -19,12 +19,12 @@ class PartitionDiscover():
 
         def add_service(zeroconf, type, name):
             info = zeroconf.get_service_info(type, name)
-            logger.debug("Partition %s added" % name)
-
-            uuid = info.properties['uuid']
-            if uuid not in partitions:
-                partitions[uuid] = deque()
-            partitions[uuid].append(info.properties)
+            if info:
+                uuid = info.properties['uuid']
+                if uuid not in partitions:
+                    partitions[uuid] = deque()
+                partitions[uuid].append(info.properties)
+                logger.debug("Partition %s added" % name)
 
         def remove_service(zeroconf, type, name):
             logger.debug("Partition %s removed" % name)
