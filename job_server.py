@@ -30,22 +30,25 @@ class JobServerHandler(object):
         try:
             self.lock.acquire()
             if name not in self.services:  # job is finished
-                print 'finished job', name, self.services.keys()
+                print 'finished job', name
                 return None
             service = self.services[name]
             if not service.is_registered():  # job is taken
                 print 'taken job'
                 return None
-            service.unregister()
+            # FIXME: should un-register to avoid multiple worker doing same job
+            # service.unregister()
             # - TODO: if it's taken, set a timer.
             #     - If timeout and no result, broadcast again since that worker is dead, or too slow.
             return service.partition.dump()
+        except Exception:
+            pass
         finally:
             self.lock.release()
 
 
 def service_name(partition):
-    return 'SparkDriverLess_Job_' + partition.uuid
+    return 'Spark_Job_' + partition.uuid
 
 
 class JobServer(object):

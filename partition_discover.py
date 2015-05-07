@@ -19,23 +19,24 @@ class PartitionDiscover():
 
         def add_service(zeroconf, type, name):
             info = zeroconf.get_service_info(type, name)
-            logger.debug("Service %s added, service info: %s" % (name, info))
+            logger.debug("Partition %s added" % name)
 
-            address = info.properties['address']
             uuid = info.properties['uuid']
             if uuid not in partitions:
                 partitions[uuid] = deque()
-            partitions[uuid].append(address)
+            partitions[uuid].append(info.properties)
 
         def remove_service(zeroconf, type, name):
-            info = zeroconf.get_service_info(type, name)
-            logger.debug("Service %s removed, service info: %s" % (name, info))
+            logger.debug("Partition %s removed" % name)
 
-            address = info.properties['address']
-            uuid = info.properties['uuid']
-            if uuid in partitions:
-                if address in partitions[uuid]:
-                    partitions[uuid].remove(address)
+            for uuid, services in enumerate(partitions):
+                target_service = None
+                for service in services:
+                    if service['name'] == name:
+                        target_service = service
+                        break
+                if target_service:
+                    services.remove(target_service)
 
         scanner = Discover(type=PARTITION_DISCOVER_TYPE,
                            add_service_func=add_service,
@@ -45,7 +46,8 @@ class PartitionDiscover():
     def get_partition(self, uuid):
         if uuid in self.partitions:
             # create a new list to prevent iteration error
-            for address in list(self.partitions[uuid]):
+            for service in list(self.partitions[uuid]):
+                address = service['address']
                 c = zerorpc.Client()
                 c.connect(address)
                 try:

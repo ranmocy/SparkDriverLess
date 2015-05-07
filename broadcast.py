@@ -26,18 +26,21 @@ class Service(object):
         self.zeroconf = Zeroconf()
         self.info = ServiceInfo(self.type, self.name, self.address, self.port,
                                 0, 0, self.properties, self.server)
-        self.zeroconf.register_service(self.info)
-        # logger.debug('Register ' + self.name)
+        self.register()
 
     def is_registered(self):
         return self.info.name.lower() in self.zeroconf.services
 
+    def register(self):
+        self.zeroconf.register_service(self.info)
+
     def unregister(self):
-        if self.info:
+        if self.is_registered():
             logger.debug('unregister')
             self.zeroconf.unregister_service(self.info)
 
     def close(self):
+        logger.debug("close service:" + self.name)
         self.unregister()
         self.zeroconf.close()
 

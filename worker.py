@@ -5,7 +5,7 @@ import gevent
 import zerorpc
 
 from helper import get_my_ip, get_my_address, get_open_port, load
-from broadcast import Service
+from broadcast import Service, WORKER_DISCOVER_TYPE
 from job_discover import JobDiscover
 from partition_discover import PartitionDiscover
 from partition_server import PartitionServer
@@ -16,12 +16,13 @@ logger = logging.getLogger(__name__)
 
 class Worker(object):
 
-    def __init__(self, uuid=str(uuid.uuid1()), ip=get_my_ip(), port=get_open_port()):
+    def __init__(self, uuid=str(uuid.uuid4()), ip=get_my_ip(), port=get_open_port()):
         self.uuid = uuid
         self.ip = ip
         self.port = port
         self.address = get_my_address(port=self.port)
-        self.service = Service(name='SparkDriverLess_'+self.uuid, port=self.port, properties=self.get_properties())
+        self.service = Service(type=WORKER_DISCOVER_TYPE,
+                               name='Spark_'+self.uuid, port=self.port, properties=self.get_properties())
         atexit.register(lambda: self.__del__())
         logger.info('Worker '+self.uuid+' is running at '+self.address)
 
@@ -59,11 +60,12 @@ if __name__ == '__main__':
         print('Fetching job...')
         # 1. connect to job's source, lock it up to prevent other workers to take it
         job = job_discover.take_next_job_partition()  # block here
+        print('Got job.')
         # 2. get the dumped_partition, unload it
         partition = get_partition_from_job(job)
+        print 'got partition'
         # 3. run the target_partition
         result = partition.get()
+        print 'got result:'+str(result)
         # 4. add result to the partition server
         partition_server.add(partition.uuid, result)
-
-        gevent.sleep(1)

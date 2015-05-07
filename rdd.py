@@ -51,7 +51,7 @@ class Context(object):
 class RDD(object):
     def __init__(self, parent):
         """[parent,func] or [context], one and only one."""
-        self.uuid = str(uuid.uuid1())
+        self.uuid = str(uuid.uuid4())
         self.parent = parent
         self.context = Context()
         self.get = None
@@ -96,44 +96,45 @@ class RDD(object):
     # - when action:
     @lazy
     def collect(self):
-        print 'collect',
-        elements = []
+
         # 1. create partitions from rdds (partition_num = len(workers))
         # 2. for every target_partition in partitions, find in partition_discover:
-        for partition in self.partitions:
-            result = self.context.partition_discover.get_partition(partition.uuid)
-            # - if exists, fetch result from corresponding worker
-            elements.append(result)
-            if result is None:
-                # - if doesn't exist, or previous try failed
-                #     1. append to partition_server
-                #     2. broadcast a `job` with partition uuid
-                self.context.job_server.add(partition)
-        print elements
+        #     - if exists, fetch result from corresponding worker
+        partition_discover = self.context.partition_discover
+        results = [partition_discover.get_partition(partition.uuid) for partition in self.partitions]
+        print 'collect', results
+
+        # add to job server if missing
+        job_server = self.context.job_server
+        for i in range(self.partition_num):
+            # - if doesn't exist, or previous try failed
+            if results[i] is None:
+                # - broadcast a `job` with partition uuid
+                job_server.add(self.partitions[i])
 
         # 3. keep discovering rdds until found the target_rdd
         while True:
-            print 'keep discovering',
-            all_done = True
-            for i in range(self.partition_num):
-                if elements[i] is None:
-                    print ' ' + str(i),
-                    # try to fetch again
-                    elements[i] = self.context.partition_discover.get_partition(self.partitions[i].uuid)
-                # if failed
-                if elements[i] is None:
-                    all_done = False
-                else:
-                    # 4. stop broadcast the `job`
-                    self.context.job_server.remove(self.partitions[i])
-            print ""
-            if all_done:
+            missing_index = [None if result else i for i, result in enumerate(results)]
+            missing_index = filter(lambda m: m is not None, missing_index)
+            if len(missing_index) is 0:
                 break
+            print 'keep discovering', missing_index
+
+            for i in missing_index:
+                partition = self.partitions[i]
+                # try to fetch again
+                results[i] = partition_discover.get_partition(partition.uuid)
+                # if success this time
+                if results[i] is not None:
+                    # 4. stop broadcast the `job`
+                    print 'stop '+str(i)
+                    job_server.remove(partition)
+
             gevent.sleep(1)
 
         # 5. retrieve result of the rdd
         result = []
-        for element in elements:
+        for element in results:
             result += element
         return result
 

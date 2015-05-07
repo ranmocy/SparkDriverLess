@@ -1,5 +1,6 @@
 import atexit
 import logging
+import uuid as uuid_lib
 
 import gevent
 import zerorpc
@@ -25,16 +26,11 @@ class PartitionServerHandler(object):
         self.thread.kill()
 
     def fetch_partition(self, uuid):
-        name = service_name(uuid)
-        if name not in self.services:  # partition is missing
-            print 'Missing partition', name, self.services
+        if uuid not in self.services:  # partition is missing
+            print 'Missing partition', uuid, self.services
             return None
-        print 'return result:' + str(self.services[name].result)
-        return dump(self.services[name].result)
-
-
-def service_name(uuid):
-    return 'Spark_Partition_' + uuid
+        print 'return result:' + str(self.services[uuid].result)
+        return dump(self.services[uuid].result)
 
 
 class PartitionServer(object):
@@ -52,18 +48,17 @@ class PartitionServer(object):
         self.handler.__del__()
 
     def add(self, uuid, result):
-        name = service_name(uuid)
-        if name in self.services:
-            logger.warning('duplicated partition service:' + name)
+        if uuid in self.services:
+            logger.warning('duplicated partition service:' + uuid)
             return
+        name = 'Spark_Partition_' + str(uuid_lib.uuid4())
         properties = {'name': name, 'uuid': uuid, 'address': self.address}
         service = Service(name=name, type=PARTITION_DISCOVER_TYPE, port=self.port, properties=properties)
         service.result = result  # attach additional information for handler
-        self.services[name] = service
-        logger.info('add partition service:' + name + ' at ' + self.address)
+        self.services[uuid] = service
+        logger.info('add partition service:' + uuid + ' at ' + self.address)
 
     def remove(self, uuid):
-        name = service_name(uuid)
-        if name in self.services:
-            self.services[name].close()
-            del self.services[name]
+        if uuid in self.services:
+            self.services[uuid].close()
+            del self.services[uuid]
