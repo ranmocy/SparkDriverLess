@@ -1,8 +1,12 @@
 import atexit
 import logging
 from collections import deque
+
 import zerorpc
+
 from broadcast import Discover, PARTITION_DISCOVER_TYPE
+from helper import load
+
 
 __author__ = 'ranmocy'
 logger = logging.getLogger(__name__)
@@ -10,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class PartitionDiscover():
     def __init__(self):
-        partitions = deque()
+        partitions = {}
         self.partitions = partitions
 
         def add_service(zeroconf, type, name):
@@ -45,7 +49,9 @@ class PartitionDiscover():
                 c = zerorpc.Client()
                 c.connect(address)
                 try:
-                    return c.fetch_partition(uuid)
+                    result = load(c.fetch_partition(uuid))
+                    print 'got partition result:'+str(result)
+                    return result
                 except zerorpc.RemoteError, zerorpc.LostRemote:
                     continue
         return None

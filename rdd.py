@@ -7,7 +7,7 @@ import gevent
 import zerorpc
 import cloudpickle
 
-from helper import lazy_property, lazy, singleton
+from helper import lazy_property, lazy, singleton, dump
 from partition_discover import PartitionDiscover
 from worker_discover import WorkerDiscover
 from job_server import JobServer
@@ -29,9 +29,7 @@ class Partition(object):
         return self.func(self)
 
     def dump(self):
-        output = StringIO.StringIO()
-        cloudpickle.CloudPickler(output).dump(self)
-        return output.getvalue()
+        return dump(self)
 
 
 @singleton
@@ -218,6 +216,8 @@ class Filter(RDD):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG, filename='client.log', filemode='a')
+    logger.critical("\n=====Client Start=====\n")
+
     context = Context()
     f = context.text_file('myfile').map(lambda s: s.split()).filter(lambda a: int(a[1]) > 2)
     print f.collect()

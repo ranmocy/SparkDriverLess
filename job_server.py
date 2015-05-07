@@ -58,8 +58,8 @@ class JobServer(object):
         atexit.register(lambda: self.__del__())
 
     def __del__(self):
-        for service in self.services:
-            service.close()
+        for name in self.services:
+            self.services[name].close()
         self.handler.__del__()
 
     def add(self, partition):

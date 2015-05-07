@@ -1,8 +1,11 @@
+import StringIO
 import logging
 import socket
 import sys
 import signal
 import subprocess
+import pickle
+import cloudpickle
 
 from colors import warn
 
@@ -43,6 +46,19 @@ def bind_signal_handler(obj):
             sys.exit()
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
+
+
+# Pickle
+def dump(obj):
+    output = StringIO.StringIO()
+    cloudpickle.CloudPickler(output).dump(obj)
+    return output.getvalue()
+
+
+def load(obj_str):
+    string_io = StringIO.StringIO(obj_str)
+    unpickler = pickle.Unpickler(string_io)
+    return unpickler.load()
 
 
 # Decorators
