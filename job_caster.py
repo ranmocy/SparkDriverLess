@@ -110,7 +110,7 @@ class JobDiscover(Discover):
         super(JobDiscover, self).__init__(type=_JOB_CASTER_TYPE, found_func=found_func)
 
     def take_next_job(self):
-        try_interval = 1
+        try_interval = 0.1
         while True:
             try:
                 result = self.queue.pop()
@@ -120,7 +120,6 @@ class JobDiscover(Discover):
                     gevent.sleep(try_interval)
                     continue
             except IndexError:
-                print 'No Job.'
                 gevent.sleep(try_interval)
                 continue
             else:

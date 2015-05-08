@@ -131,7 +131,7 @@ class RDD(object):
                     print 'stop '+str(i)
                     job_server.remove(partition)
 
-            gevent.sleep(1)
+            gevent.sleep(0.1)
 
         # 5. retrieve result of the rdd
         result = []
