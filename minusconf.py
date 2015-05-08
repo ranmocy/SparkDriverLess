@@ -14,6 +14,10 @@ import threading
 import time
 import sys
 
+from gevent import monkey
+monkey.patch_all()
+
+
 _IPV6_ENABLED = False
 _PORT = 6376
 _ADDRESS_4 = '239.45.99.98'
@@ -621,7 +625,7 @@ def _main():
         sname = options[2] if len(options) > 2 else ''
 
         se = Seeker(aname, stype, sname, find_callback=_print_result, error_callback=_print_error)
-        se.run()
+        se.run_forever()
     else:
         _usage('Unknown subcommand "' + sys.argv[0] + '"')
 
