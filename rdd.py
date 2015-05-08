@@ -224,3 +224,7 @@ if __name__ == '__main__':
     context = Context()
     f = context.text_file('myfile').map(lambda s: s.split()).filter(lambda a: int(a[1]) > 2)
     print f.collect()
+
+
+class DependencyMissing(Exception):
+    pass

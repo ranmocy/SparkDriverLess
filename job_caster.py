@@ -1,16 +1,17 @@
 import atexit
+from collections import deque
 import logging
 import threading
 
 import gevent
 import zerorpc
 
-from broadcast import Service, Discover
-from helper import get_my_ip, get_open_port, get_my_address
+from broadcast import Service, Discover, Broadcaster
+from helper import get_my_ip, get_open_port, get_my_address, load
 
 
 __author__ = 'ranmocy'
-_JOB_DISCOVER_TYPE = '_spark.job.'
+_JOB_CASTER_TYPE = '_spark.job.'
 logger = logging.getLogger(__name__)
 
 
@@ -27,19 +28,13 @@ class JobServerHandler(object):
     def __del__(self):
         self.thread.kill()
 
-    def re_register_after_timeout(self, service, timeout):
-        def reactivate(service):
-            service.activate()
-            logger.debug("Reactivated job:" + service.name)
-        gevent.spawn_later(timeout, reactivate, service)
-
-    def take(self, name):
+    def take(self, uuid):
         try:
             self.lock.acquire()
-            if name not in self.services:  # job is finished
-                print 'finished job', name
+            if uuid not in self.services:  # job is finished
+                print 'finished job', uuid
                 return None
-            service = self.services[name]
+            service = self.services[uuid]
             if not service.is_active():  # job is taken
                 print 'taken job'
                 return None
@@ -50,7 +45,14 @@ class JobServerHandler(object):
 
             # - if it's taken, set a timer.
             #     - If timeout and no result, broadcast again since that worker is dead, or too slow.
-            self.re_register_after_timeout(service, 10)
+            services = self.services
+
+            def reactivate():
+                if service.partition.uuid in services:
+                    # Still not finished
+                    service.activate()
+                    logger.debug("Reactivated job:" + service.name)
+            gevent.spawn_later(10, reactivate)
 
             logger.debug("Return job:" + service.name)
             return service.partition.dump()
@@ -58,52 +60,67 @@ class JobServerHandler(object):
             self.lock.release()
 
 
-def service_name(partition):
-    return 'Spark_Job_' + partition.uuid
-
-
-class JobServer(object):
+class JobServer(Broadcaster):
     def __init__(self):
+        super(JobServer, self).__init__(name='Spark.JobServer')
         self.ip = get_my_ip()
         self.port = get_open_port()
         self.address = get_my_address(port=self.port)
-        self.services = {}
-        self.handler = JobServerHandler(self.services, address=self.address)
+        self.jobs = {}  # uuid => service
+        self.handler = JobServerHandler(self.jobs, address=self.address)
         atexit.register(lambda: self.__del__())
 
     def __del__(self):
-        for name in self.services:
-            self.services[name].close()
+        super(JobServer, self).__del__()
         self.handler.__del__()
 
     def add(self, partition):
-        name = service_name(partition)
-        if name in self.services:
-            logger.warning('duplicated job service:' + name)
+        uuid = partition.uuid
+        if uuid in self.jobs:
+            logger.warning('duplicated job service:' + uuid)
             return
-        properties = {'name': name, 'uuid': partition.uuid, 'address': self.address}
-        service = Service(name=name, type=_JOB_DISCOVER_TYPE, port=self.port, properties=properties)
+        service = Service(name=uuid, type=_JOB_CASTER_TYPE, location=self.ip, port=self.port)
         service.partition = partition  # attach additional information for handler
-        self.services[name] = service
-        logger.info('add job service:' + name + ' at ' + self.address)
+
+        self.job[uuid] = service
+        super(JobServer, self).add(service)
 
     def remove(self, partition):
-        name = service_name(partition)
-        if name in self.services:
-            self.services[name].close()
-            del self.services[name]
-            logger.info('remove job service:'+name+' at '+self.address)
+        uuid = partition.uuid
+        if uuid in self.jobs:
+            service = self.jobs[uuid]
+            del self.jobs[uuid]
+            super(JobServer, self).remove(service)
 
 
 class JobDiscover(Discover):
     def __init__(self):
-        super(JobDiscover, self).__init__(type=_JOB_DISCOVER_TYPE)
+        queue = deque()
+        self.queue = queue
+        discover = self
 
-    def take_next_job_partition(self):
+        def found_func(seeker, result):
+            for uuid in discover.results:
+                if result.uuid == uuid:
+                    return
+            queue.append(result)
+            logger.info("Found "+result.type+":"+result.sname+" at "+result.address)
+
+        super(JobDiscover, self).__init__(type=_JOB_CASTER_TYPE, found_func=found_func)
+
+    def take_next_job(self):
         while True:
             try:
-                service_name = self.queue.popleft()
-                return self.jobs[service_name]
+                result = self.queue.pop()
+                if result.uuid not in self.results:
+                    # outdated result
+                    gevent.sleep(0.1)
+                    continue
             except IndexError:
                 gevent.sleep(0.1)
                 continue
+            else:
+                return result
+
+    def suspend_job(self, result):
+        self.queue.append(result)
