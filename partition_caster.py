@@ -5,7 +5,7 @@ import gevent
 import zerorpc
 
 from broadcast import Service, Discover, Broadcaster
-from helper import get_my_ip, get_open_port, get_my_address, dump, load
+from helper import get_my_ip, get_open_port, get_zerorpc_address, dump, load
 
 
 __author__ = 'ranmocy'
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class PartitionServerHandler(object):
-    def __init__(self, partitions, address=get_my_address(get_open_port())):
+    def __init__(self, partitions, address=get_zerorpc_address(port=get_open_port())):
         self.partitions = partitions
         self.address = address
         self.server = zerorpc.Server(self)
@@ -38,7 +38,7 @@ class PartitionServer(Broadcaster):
         super(PartitionServer, self).__init__(name='Spark.PartitionServer')
         self.ip = get_my_ip()
         self.port = get_open_port()
-        self.address = get_my_address(port=self.port)
+        self.address = get_zerorpc_address(port=self.port)
         self.partitions = {}  # uuid => service
         self.handler = PartitionServerHandler(self.partitions, address=self.address)
         atexit.register(lambda: self.__del__())

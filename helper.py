@@ -34,8 +34,8 @@ def get_my_ip():
     return subprocess.Popen(["hostname", "-I"], stdout=subprocess.PIPE).communicate()[0].strip()
 
 
-def get_my_address(port=get_open_port()):
-    return 'tcp://'+get_my_ip()+':'+str(port)
+def get_zerorpc_address(ip=get_my_ip(), port=get_open_port()):
+    return 'tcp://'+ip+':'+str(port)
 
 
 def bind_signal_handler(obj):

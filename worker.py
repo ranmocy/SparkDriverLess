@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 import logging
+logging.basicConfig(level=logging.DEBUG, filename='worker.log', filemode='a')
+logger = logging.getLogger(__name__)
+logger.critical("\n=====Worker Start=====\n")
+
 import uuid
 
 import zerorpc
 
-from helper import get_my_ip, get_my_address, get_open_port, load, DependencyMissing
+from helper import get_my_ip, get_zerorpc_address, get_open_port, load, DependencyMissing
 from broadcast import Service, Discover, Broadcaster
 from job_caster import JobDiscover
 from partition_caster import PartitionServer, PartitionDiscover
 
 
 _WORKER_CASTER_TYPE = '_spark.worker.'
-logger = logging.getLogger(__name__)
 
 
 class WorkerServer(Broadcaster):
@@ -21,7 +24,7 @@ class WorkerServer(Broadcaster):
         self.uuid = str(uuid.uuid4())
         self.ip = get_my_ip()
         self.port = get_open_port()
-        self.address = get_my_address(port=self.port)
+        self.address = get_zerorpc_address(port=self.port)
         self.service = Service(type=_WORKER_CASTER_TYPE, name=self.uuid, location=self.ip, port=self.port)
         self.add(self.service)
 
@@ -36,9 +39,9 @@ class WorkerDiscover(Discover):
 
 def get_partition_from_job(job):
     try:
-        c = zerorpc.Client()
-        c.connect(job.address)
-        obj_str = c.take(job.uuid)
+        client = zerorpc.Client()
+        client.connect(job.address)
+        obj_str = client.take(job.uuid)
     except zerorpc.RemoteError, zerorpc.LostRemote:
         return None
     else:
@@ -47,9 +50,6 @@ def get_partition_from_job(job):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, filename='worker.log', filemode='a')
-    logger.critical("\n=====Worker Start=====\n")
-
     # 1. broadcast a `worker` with new generated uuid, {address=ip:port}
     worker = WorkerServer()
     # 2. discover `job`, append to jobs

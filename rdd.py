@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 import logging
+logging.basicConfig(level=logging.DEBUG, filename='client.log', filemode='a')
+logger = logging.getLogger(__name__)
+logger.critical("\n=====Client Start=====\n")
+
 import os
 import uuid
 
@@ -11,9 +15,6 @@ from helper import lazy_property, lazy, singleton, dump
 from partition_caster import PartitionDiscover
 from worker import WorkerDiscover
 from job_caster import JobServer
-
-
-logger = logging.getLogger(__name__)
 
 
 class Partition(object):
@@ -216,9 +217,7 @@ class Filter(RDD):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, filename='client.log', filemode='a')
-    logger.critical("\n=====Client Start=====\n")
-
     context = Context()
+
     f = context.text_file('myfile').map(lambda s: s.split()).filter(lambda a: int(a[1]) > 2)
     print f.collect()

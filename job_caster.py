@@ -7,7 +7,7 @@ import gevent
 import zerorpc
 
 from broadcast import Service, Discover, Broadcaster
-from helper import get_my_ip, get_open_port, get_my_address, load
+from helper import get_my_ip, get_open_port, get_zerorpc_address
 
 
 __author__ = 'ranmocy'
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class JobServerHandler(object):
-    def __init__(self, services, address=get_my_address(get_open_port())):
+    def __init__(self, services, address=get_zerorpc_address(port=get_open_port())):
         self.services = services
         self.address = address
         self.server = zerorpc.Server(self)
@@ -65,7 +65,7 @@ class JobServer(Broadcaster):
         super(JobServer, self).__init__(name='Spark.JobServer')
         self.ip = get_my_ip()
         self.port = get_open_port()
-        self.address = get_my_address(port=self.port)
+        self.address = get_zerorpc_address(port=self.port)
         self.jobs = {}  # uuid => service
         self.handler = JobServerHandler(self.jobs, address=self.address)
         atexit.register(lambda: self.__del__())
@@ -103,21 +103,25 @@ class JobDiscover(Discover):
             for uuid in discover.results:
                 if result.uuid == uuid:
                     return
+            self.results[result.uuid] = {result}
             queue.append(result)
             logger.info("Found "+result.type+":"+result.sname+" at "+result.address)
 
         super(JobDiscover, self).__init__(type=_JOB_CASTER_TYPE, found_func=found_func)
 
     def take_next_job(self):
+        try_interval = 1
         while True:
             try:
                 result = self.queue.pop()
                 if result.uuid not in self.results:
                     # outdated result
-                    gevent.sleep(0.1)
+                    print 'Job outdated:'+result.uuid
+                    gevent.sleep(try_interval)
                     continue
             except IndexError:
-                gevent.sleep(0.1)
+                print 'No Job.'
+                gevent.sleep(try_interval)
                 continue
             else:
                 return result

@@ -55,6 +55,7 @@ class Service(object):
 
 class Discover(object):
     def __init__(self, type='', advertiser_name='', service_name='', found_func=None, error_func=None):
+        self.type = type
         self.results = {}  # uuid => set(results)
 
         discover = self
@@ -68,14 +69,14 @@ class Discover(object):
         def on_error(*args, **kwargs):
             logger.error('on Discover', args, kwargs)
 
-        self.seeker = Seeker(stype=type, aname=advertiser_name, sname=service_name, timeout=1.0,
+        self.seeker = Seeker(stype=self.type, aname=advertiser_name, sname=service_name, timeout=1.0,
                              find_callback=found_func or found, error_callback=error_func or on_error)
         self.thread = gevent.spawn(self.run_forever)
-        logger.debug("Discover started.")
+        logger.debug("Discover "+self.type+" started.")
 
     def __del__(self):
         self.thread.kill()
-        logger.debug("Discover closed.")
+        logger.debug("Discover "+self.type+"closed.")
 
     def run_forever(self):
         while True:
@@ -104,11 +105,13 @@ class Discover(object):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, filename='worker.log', filemode='a')
     import sys
+    logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
     if sys.argv[1] == 'a':
+        b = Broadcaster()
         s = Service(type='stype')
-        s.broadcaster.thread.join()
+        b.add(s)
+        b.thread.join()
     else:
         d = Discover(type='stype')
         d.thread.join()
