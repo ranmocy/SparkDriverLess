@@ -1,33 +1,57 @@
 #!/usr/bin/env python
-
+from collections import deque
 import logging
-import socket
 
-from zeroconf import ServiceBrowser, Zeroconf, ServiceInfo
+import gevent
+
+from minusconf import Advertiser, Seeker
+from minusconf import Service as ConfService
+from helper import singleton
 
 
-DEFAULT_TYPE = '_http._tcp.local.'
-WORKER_DISCOVER_TYPE = '_http._tcp.worker.'
-PARTITION_DISCOVER_TYPE = '_http._tcp.partition.'
-JOB_DISCOVER_TYPE = '_http._tcp.job.'
+DEFAULT_TYPE = '_spark.local.'
+WORKER_DISCOVER_TYPE = '_spark.worker.'
+PARTITION_DISCOVER_TYPE = '_spark.partition.'
+JOB_DISCOVER_TYPE = '_spark.job.'
 logger = logging.getLogger(__name__)
+
+
+@singleton
+class Broadcaster(object):
+    def __init__(self):
+        self.name = 'SparkDriverLess'
+        self.services = deque()
+        self.advertiser = Advertiser(self.services, self.name)
+        self.thread = gevent.spawn(self.advertiser.run)
+        logger.debug("Broadcaster is started.")
+
+    def __del__(self):
+        self.thread.kill()
+        logger.debug("Broadcaster is closed.")
+
+    def add(self, service):
+        if service.conf_service not in self.services:
+            self.services.append(service.conf_service)
+            logger.debug("Service "+service.type+" added:"+service.name)
+
+    def remove(self, service):
+        if service.conf_service in self.services:
+            self.services.remove(service.conf_service)
+            logger.debug("Service removed:"+service.name)
 
 
 class Service(object):
     def __init__(self, type=DEFAULT_TYPE, name='SparkDriverLess',
-                 address=socket.inet_aton("127.0.0.1"), port=9999,
-                 properties=None, server=None):
+                 location="0.0.0.0", port=9999):
         self.type = type
         self.name = name + type  # `name` must end with `type`
-        self.address = address
+        self.location = location
         self.port = port
-        self.properties = properties
-        self.server = server
         self.active = True
-        self.zeroconf = Zeroconf()
-        self.info = ServiceInfo(self.type, self.name, self.address, self.port,
-                                0, 0, self.properties, self.server)
-        self.zeroconf.register_service(self.info)
+
+        self.broadcaster = Broadcaster()
+        self.conf_service = ConfService(stype=self.type, port=self.port, sname=self.name, location=self.location)
+        self.broadcaster.add(self)
 
     def is_active(self):
         return self.active
@@ -39,36 +63,51 @@ class Service(object):
         self.active = False
 
     def close(self):
-        self.zeroconf.unregister_service(self.info)
-        self.zeroconf.close()
+        self.broadcaster.remove(self)
         logger.debug("closed service:" + self.name)
 
 
 class Discover(object):
-    def __init__(self, type=DEFAULT_TYPE, add_service_func=None, remove_service_func=None):
-        def add_service(zeroconf, type, name):
-            info = zeroconf.get_service_info(type, name)
-            logger.debug("Service %s added, service info: %s" % (name, info))
+    def __init__(self, type=DEFAULT_TYPE, advertiser_name='', service_name=''):
+        self.results = {}  # uuid => set(results)
 
-        def remove_service(zeroconf, type, name):
-            info = zeroconf.get_service_info(type, name)
-            logger.debug("Service %s removed, service info: %s" % (name, info))
+        discover = self
 
-        if add_service_func is None:
-            add_service_func = add_service
-        if remove_service_func is None:
-            remove_service_func = remove_service
+        def found(seeker, result):
+            for uuid in discover.results:
+                if result.uuid == uuid:
+                    return
+            logger.info("Found "+result.type+":"+result.sname+" at "+result.address)
 
-        class DiscoverListener(object):
-            def add_service(self, zeroconf, s_type, name):
-                return add_service_func(zeroconf, s_type, name)
+        def on_error(*args, **kwargs):
+            logger.error('on Discover', args, kwargs)
 
-            def remove_service(self, zeroconf, s_type, name):
-                return remove_service_func(zeroconf, s_type, name)
+        self.seeker = Seeker(stype=type, aname=advertiser_name, sname=service_name,
+                             timeout=1.0, find_callback=found, error_callback=on_error)
+        self.thread = gevent.spawn(self.run_forever)
+        logger.debug("Discover started.")
 
-        self.zeroconf = Zeroconf()
-        self.listener = DiscoverListener()
-        self.browser = ServiceBrowser(self.zeroconf, type, self.listener)
+    def __del__(self):
+        self.thread.kill()
+        logger.debug("Discover closed.")
 
-    def close(self):
-        self.zeroconf.close()
+    def run_forever(self):
+        while True:
+            results = self.seeker.run()
+            new_results = {}
+            for result in results:
+                if result.uuid not in new_results:
+                    new_results[result.uuid] = set()
+                new_results[result.uuid].add(result)
+            self.results = new_results
+            gevent.sleep(0)
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG, filename='worker.log', filemode='a')
+    import sys
+    if sys.argv[1] == 'a':
+        s = Service(type='stype')
+        s.broadcaster.thread.join()
+    else:
+        d = Discover(type='stype')
+        d.thread.join()

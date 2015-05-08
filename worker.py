@@ -47,7 +47,7 @@ def get_partition_from_job(job):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, filename='worker.log', filemode='a')
+    logging.basicConfig(level=logging.DEBUG, filename='worker.log', filemode='a')
     logger.critical("\n=====Worker Start=====\n")
 
     # 1. broadcast a `worker` with new generated uuid, {address=ip:port}

@@ -109,7 +109,8 @@ class Service(_MinusconfImmutableStruct):
     """ Helper structure for a service."""
 
     def __init__(self, stype, port, sname='', location=''):
-        super(Service, self).__init__(stype=stype, port=_compat_str(port), sname=sname, location=location)
+        super(Service, self).__init__(stype=stype, sname=sname, location=location, port=_compat_str(port),
+                                      type=stype, uuid=sname, address=location+':'+_compat_str(port))
 
     def matches_query(self, stype, sname):
         return _string_match(stype, self.stype) and _string_match(sname, self.sname)
@@ -133,9 +134,9 @@ class ServiceAt(_MinusconfImmutableStruct):
     """ A service returned by an advertiser"""
 
     def __init__(self, aname, stype, sname, location, port, addr):
-        super(ServiceAt, self).__init__(
-            aname=aname, stype=stype, sname=sname, location=location, port=port, addr=addr
-        )
+        super(ServiceAt, self).__init__(aname=aname, stype=stype, sname=sname,
+                                        location=location, port=port, addr=addr,
+                                        type=stype, uuid=sname, address=addr+':'+port)
 
     def matches_query_at(self, aname, stype, sname):
         return _string_match(stype, self.stype) and _string_match(sname, self.sname) and _string_match(aname,
