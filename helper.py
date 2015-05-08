@@ -5,12 +5,15 @@ import sys
 import signal
 import subprocess
 import pickle
-import cloudpickle
 
-from colors import warn
+import cloudpickle
 
 
 logger = logging.getLogger(__name__)
+
+
+class DependencyMissing(Exception):
+    pass
 
 
 def get_open_port():

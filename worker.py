@@ -4,11 +4,10 @@ import uuid
 
 import zerorpc
 
-from helper import get_my_ip, get_my_address, get_open_port, load
+from helper import get_my_ip, get_my_address, get_open_port, load, DependencyMissing
 from broadcast import Service, Discover, Broadcaster
 from job_caster import JobDiscover
 from partition_caster import PartitionServer, PartitionDiscover
-from rdd import DependencyMissing
 
 
 _WORKER_CASTER_TYPE = '_spark.worker.'

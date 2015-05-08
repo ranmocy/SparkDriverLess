@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 
-import StringIO
 import logging
 import os
 import uuid
 
 import gevent
 import zerorpc
-import cloudpickle
 
 from helper import lazy_property, lazy, singleton, dump
 from partition_caster import PartitionDiscover
@@ -224,7 +222,3 @@ if __name__ == '__main__':
     context = Context()
     f = context.text_file('myfile').map(lambda s: s.split()).filter(lambda a: int(a[1]) > 2)
     print f.collect()
-
-
-class DependencyMissing(Exception):
-    pass
