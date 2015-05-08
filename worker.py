@@ -1,40 +1,38 @@
 #!/usr/bin/env python
-
-import atexit
 import logging
 import uuid
 
 import zerorpc
 
 from helper import get_my_ip, get_my_address, get_open_port, load
-from broadcast import Service, WORKER_DISCOVER_TYPE
+from broadcast import Service, Discover, Broadcaster
 from job_caster import JobDiscover
-from partition_discover import PartitionDiscover
 from partition_caster import PartitionServer, PartitionDiscover
 from rdd import DependencyMissing
 
 
+_WORKER_CASTER_TYPE = '_spark.worker.'
 logger = logging.getLogger(__name__)
 
 
-class Worker(object):
+class WorkerServer(Broadcaster):
 
-    def __init__(self, uuid=str(uuid.uuid4()), ip=get_my_ip(), port=get_open_port()):
-        self.uuid = uuid
-        self.ip = ip
-        self.port = port
+    def __init__(self):
+        super(WorkerServer, self).__init__('Spark.WorkerServer')
+        self.uuid = str(uuid.uuid4())
+        self.ip = get_my_ip()
+        self.port = get_open_port()
         self.address = get_my_address(port=self.port)
-        self.service = Service(type=WORKER_DISCOVER_TYPE,
-                               name='Spark_'+self.uuid, port=self.port, properties=self.get_properties())
-        atexit.register(lambda: self.__del__())
-        logger.info('Worker '+self.uuid+' is running at '+self.address)
-        print('Worker '+self.uuid+' is running at '+self.address)
+        self.service = Service(type=_WORKER_CASTER_TYPE, name=self.uuid, location=self.ip, port=self.port)
+        self.add(self.service)
 
-    def __del__(self):
-        self.service.close()
 
-    def get_properties(self):
-        return {'uuid': self.uuid, 'address': self.address}
+class WorkerDiscover(Discover):
+    def __init__(self):
+        super(WorkerDiscover, self).__init__(type=_WORKER_CASTER_TYPE)
+
+    def size(self):
+        return len(self.results)
 
 
 def get_partition_from_job(job):
@@ -54,7 +52,7 @@ if __name__ == '__main__':
     logger.critical("\n=====Worker Start=====\n")
 
     # 1. broadcast a `worker` with new generated uuid, {address=ip:port}
-    worker = Worker()
+    worker = WorkerServer()
     # 2. discover `job`, append to jobs
     job_discover = JobDiscover()
     # 3. discover `partitions`, append to partitions

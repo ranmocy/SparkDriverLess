@@ -9,7 +9,6 @@ from minusconf import Service as ConfService
 from helper import singleton
 
 
-WORKER_DISCOVER_TYPE = '_spark.worker.'
 logger = logging.getLogger(__name__)
 
 
@@ -20,11 +19,11 @@ class Broadcaster(object):
         self.services = deque()
         self.advertiser = Advertiser(self.services, self.name)
         self.thread = gevent.spawn(self.advertiser.run)
-        logger.debug("Broadcaster is started.")
+        logger.debug("Broadcaster "+self.name+" is started.")
 
     def __del__(self):
         self.thread.kill()
-        logger.debug("Broadcaster is closed.")
+        logger.debug("Broadcaster "+self.name+" is closed.")
 
     def add(self, service):
         if service.conf_service not in self.services:

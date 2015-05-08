@@ -9,7 +9,7 @@ from helper import get_my_ip, get_open_port, get_my_address, dump, load
 
 
 __author__ = 'ranmocy'
-PARTITION_DISCOVER_TYPE = '_spark.partition.'
+_PARTITION_CASTER_TYPE = '_spark.partition.'
 logger = logging.getLogger(__name__)
 
 
@@ -53,7 +53,7 @@ class PartitionServer(Broadcaster):
             return
         if result is None:
             raise Exception("Result shouldn't be None!")
-        service = Service(name=uuid, type=PARTITION_DISCOVER_TYPE, location=self.ip, port=self.port)
+        service = Service(name=uuid, type=_PARTITION_CASTER_TYPE, location=self.ip, port=self.port)
         service.result = result  # attach additional information for handler
 
         self.partitions[uuid] = service
@@ -68,7 +68,7 @@ class PartitionServer(Broadcaster):
 
 class PartitionDiscover(Discover):
     def __init__(self):
-        super(PartitionDiscover, self).__init__(type=PARTITION_DISCOVER_TYPE)
+        super(PartitionDiscover, self).__init__(type=_PARTITION_CASTER_TYPE)
 
     def get_partition(self, uuid):
         if uuid in self.results:

@@ -11,7 +11,7 @@ import cloudpickle
 
 from helper import lazy_property, lazy, singleton, dump
 from partition_caster import PartitionDiscover
-from worker_discover import WorkerDiscover
+from worker import WorkerDiscover
 from job_caster import JobServer
 
 
