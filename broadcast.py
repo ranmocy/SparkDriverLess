@@ -12,7 +12,6 @@ from helper import singleton
 DEFAULT_TYPE = '_spark.local.'
 WORKER_DISCOVER_TYPE = '_spark.worker.'
 PARTITION_DISCOVER_TYPE = '_spark.partition.'
-JOB_DISCOVER_TYPE = '_spark.job.'
 logger = logging.getLogger(__name__)
 
 

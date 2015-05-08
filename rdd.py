@@ -12,7 +12,7 @@ import cloudpickle
 from helper import lazy_property, lazy, singleton, dump
 from partition_discover import PartitionDiscover
 from worker_discover import WorkerDiscover
-from job_server import JobServer
+from job_caster import JobServer
 
 
 logger = logging.getLogger(__name__)

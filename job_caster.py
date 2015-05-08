@@ -5,11 +5,12 @@ import threading
 import gevent
 import zerorpc
 
-from broadcast import Service, JOB_DISCOVER_TYPE
+from broadcast import Service, Discover
 from helper import get_my_ip, get_open_port, get_my_address
 
 
 __author__ = 'ranmocy'
+_JOB_DISCOVER_TYPE = '_spark.job.'
 logger = logging.getLogger(__name__)
 
 
@@ -81,7 +82,7 @@ class JobServer(object):
             logger.warning('duplicated job service:' + name)
             return
         properties = {'name': name, 'uuid': partition.uuid, 'address': self.address}
-        service = Service(name=name, type=JOB_DISCOVER_TYPE, port=self.port, properties=properties)
+        service = Service(name=name, type=_JOB_DISCOVER_TYPE, port=self.port, properties=properties)
         service.partition = partition  # attach additional information for handler
         self.services[name] = service
         logger.info('add job service:' + name + ' at ' + self.address)
@@ -92,3 +93,17 @@ class JobServer(object):
             self.services[name].close()
             del self.services[name]
             logger.info('remove job service:'+name+' at '+self.address)
+
+
+class JobDiscover(Discover):
+    def __init__(self):
+        super(JobDiscover, self).__init__(type=_JOB_DISCOVER_TYPE)
+
+    def take_next_job_partition(self):
+        while True:
+            try:
+                service_name = self.queue.popleft()
+                return self.jobs[service_name]
+            except IndexError:
+                gevent.sleep(0.1)
+                continue

@@ -8,7 +8,7 @@ import zerorpc
 
 from helper import get_my_ip, get_my_address, get_open_port, load
 from broadcast import Service, WORKER_DISCOVER_TYPE
-from job_discover import JobDiscover
+from job_caster import JobDiscover
 from partition_discover import PartitionDiscover
 from partition_server import PartitionServer
 
