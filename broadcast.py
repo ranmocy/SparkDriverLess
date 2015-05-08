@@ -6,13 +6,11 @@ import gevent
 
 from minusconf import Advertiser, Seeker
 from minusconf import Service as ConfService
-from helper import singleton
 
 
 logger = logging.getLogger(__name__)
 
 
-@singleton
 class Broadcaster(object):
     def __init__(self, name='SparkDriverLessBroadcaster'):
         self.name = name
