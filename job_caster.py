@@ -82,7 +82,7 @@ class JobServer(Broadcaster):
         service = Service(name=uuid, type=_JOB_CASTER_TYPE, location=self.ip, port=self.port)
         service.partition = partition  # attach additional information for handler
 
-        self.job[uuid] = service
+        self.jobs[uuid] = service
         super(JobServer, self).add(service)
 
     def remove(self, partition):

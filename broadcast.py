@@ -80,7 +80,9 @@ class Discover(object):
     def run_forever(self):
         while True:
             results = self.seeker.run()
-            origin_results = set(self.results.values())
+            origin_results = set()
+            for result_value in self.results.values():
+                origin_results |= result_value
             results_to_add = results - origin_results
             results_to_remove = origin_results - results
 
