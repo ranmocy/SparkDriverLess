@@ -10,7 +10,7 @@ from helper import get_my_ip, get_my_address, get_open_port, load
 from broadcast import Service, WORKER_DISCOVER_TYPE
 from job_caster import JobDiscover
 from partition_discover import PartitionDiscover
-from partition_server import PartitionServer
+from partition_caster import PartitionServer, PartitionDiscover
 from rdd import DependencyMissing
 
 
@@ -82,4 +82,4 @@ if __name__ == '__main__':
             continue
         print 'got result:'+str(result)
         # 4. add result to the partition server
-        partition_server.add(partition.uuid, result)
+        partition_server.add(uuid=partition.uuid, result=result)

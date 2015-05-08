@@ -10,7 +10,6 @@ from helper import singleton
 
 
 WORKER_DISCOVER_TYPE = '_spark.worker.'
-PARTITION_DISCOVER_TYPE = '_spark.partition.'
 logger = logging.getLogger(__name__)
 
 
