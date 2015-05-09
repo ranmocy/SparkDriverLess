@@ -52,7 +52,6 @@ if __name__ == '__main__':
     partition_server = PartitionServer()
     # 5. start a loop keep trying to get a job from jobs:
     while True:
-        gevent.sleep(1)  # FIXME:
         print('Fetching job...')
 
         # 1. connect to job's source, lock it up to prevent other workers to take it

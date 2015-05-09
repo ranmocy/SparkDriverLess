@@ -127,17 +127,15 @@ class JobDiscover(Discover):
             return partition
 
     def take_next_job(self):
-        try_interval = 0.1
         while True:
+            gevent.sleep(0.5)
             try:
                 result = self.queue.pop()
                 if result.uuid not in self.results:
                     # outdated result
                     print 'Job outdated:'+result.uuid
-                    gevent.sleep(try_interval)
                     continue
             except IndexError:
-                gevent.sleep(try_interval)
                 continue
             else:
                 return result
