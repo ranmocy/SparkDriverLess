@@ -53,15 +53,13 @@ def bind_signal_handler(obj):
 
 # Pickle
 def dump(obj):
-    output = StringIO.StringIO()
-    cloudpickle.CloudPickler(output).dump(obj)
-    return output.getvalue()
+    return cloudpickle.dumps(obj)
 
 
 def load(obj_str):
-    string_io = StringIO.StringIO(obj_str)
-    unpickler = pickle.Unpickler(string_io)
-    return unpickler.load()
+    if obj_str is None:
+        import ipdb; ipdb.set_trace()
+    return pickle.loads(obj_str)
 
 
 # Decorators
