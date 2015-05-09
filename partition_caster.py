@@ -5,7 +5,7 @@ import gevent
 import zerorpc
 
 from broadcast import Service, Discover, Broadcaster
-from helper import get_my_ip, get_open_port, get_zerorpc_address, dump, load
+from helper import get_my_ip, get_open_port, get_zerorpc_address, dump, load, lazy
 
 
 __author__ = 'ranmocy'
@@ -69,17 +69,22 @@ class PartitionServer(Broadcaster):
 class PartitionDiscover(Discover):
     def __init__(self):
         super(PartitionDiscover, self).__init__(type=_PARTITION_CASTER_TYPE)
+        self.cache = {}  # cache the result
 
     def get_partition(self, uuid):
+        if uuid in self.cache:
+            return self.cache[uuid]
+
         if uuid in self.results:
             # create a new list to prevent iteration error
             for result in list(self.results[uuid]):
                 try:
                     c = zerorpc.Client()
                     c.connect(result.address)
-                    result = load(c.fetch_partition(uuid))
-                    print 'got partition result:'+str(result)
-                    return result
+                    partition_result = load(c.fetch_partition(uuid))
+                    print 'got partition_result:'+str(partition_result)
+                    self.cache[uuid] = partition_result
+                    return partition_result
                 except zerorpc.RemoteError, zerorpc.LostRemote:
                     continue
         return None

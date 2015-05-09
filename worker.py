@@ -10,7 +10,7 @@ import zerorpc
 
 from helper import get_my_ip, get_zerorpc_address, get_open_port, load, DependencyMissing
 from broadcast import Service, Discover, Broadcaster
-from job_caster import JobDiscover
+from job_caster import JobDiscover, JobServer
 from partition_caster import PartitionServer, PartitionDiscover
 
 
@@ -54,6 +54,8 @@ if __name__ == '__main__':
     worker = WorkerServer()
     # 2. discover `job`, append to jobs
     job_discover = JobDiscover()
+    # 3. start a job server
+    job_server = JobServer()
     # 3. discover `partitions`, append to partitions
     partition_discover = PartitionDiscover()
     # 4. start a partitions_server
@@ -72,10 +74,28 @@ if __name__ == '__main__':
         print 'got partition'
         # 3. run the target_partition
         try:
+            # - if narrow_dependent:
+            #   - do it right away
             result = partition.get()
         except DependencyMissing:
+            # - if wide_dependent:
+            #   - try search dep_partitions in rdds
+            #     - if exists, fetch result from corresponding worker
+            not_exists_in_discover = lambda p: partition_discover.get_partition(p.uuid) is None
+            missing_partitions = filter(not_exists_in_discover, partition.parent_partitions)
+            assert len(missing_partitions) > 0  # otherwise there won't be exception
+
+            # - if doesn't exist, or previous try failed
+            # 1. for every partition of dep_rdd:
+            for missing in missing_partitions:
+                # 1. append to job server
+                # 2. broadcast a `job` with partition uuid
+                job_server.add(missing)
+            # 2. append current job back to jobs
             job_discover.suspend_job(next_job)
             print 'Wide dependency missing. Suspend the job.'
+            # 3. DO NOT sleep(NETWORK_LATENCY * 2). it's better to it locally to avoid network transfer
+            # 3. continue to next job
             continue
         print 'got result:'+str(result)
         # 4. add result to the partition server

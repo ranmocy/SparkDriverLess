@@ -55,6 +55,7 @@ class RDD(object):
         self.uuid = str(uuid.uuid4())
         self.parent = parent
         self.context = Context()
+        self.wide_dependency = False
         self.get = None
 
     def map(self, *args):
@@ -77,6 +78,7 @@ class RDD(object):
     # GetPartition
     # - when transition:
     #     1. create rdd lineage
+    #     2. if wide_dependency, parent_list is all parent_partitions
     @lazy_property
     def partitions(self):
         if self.parent is None:
@@ -85,12 +87,14 @@ class RDD(object):
         partitions = []
         parent_partitions = self.parent.partitions
         if self.partition_num != len(parent_partitions):
-            print self
             raise Exception(
                 "partitions length mismatched with parent!" + str(len(partitions)) + ',' + str(self.partition_num))
         for i in range(self.partition_num):
             p = Partition(uuid=self.uuid, part_id=i, func=self.get)
-            p.parent_list = [parent_partitions[i]]
+            if self.wide_dependency:
+                p.parent_list = parent_partitions
+            else:
+                p.parent_list = [parent_partitions[i]]
             partitions.append(p)
         return partitions
 
@@ -139,33 +143,6 @@ class RDD(object):
             result += element
         return result
 
-    # Run
-    # - if narrow_dependent:
-    #     - do it right away
-
-    # - if wide_dependent:
-    def get_wide(self, partition):
-        # - try search dep_partitions in rdds
-        if self.uuid in self.context.rdds:
-            # - if exists, fetch result from corresponding worker
-            for address in self.context.rdds[self.uuid]:
-                c = zerorpc.Client()
-                c.connect(address)
-                try:
-                    return c.fetch_rdd(self.uuid)
-                except zerorpc.RemoteError, zerorpc.LostRemote:
-                    continue
-                    # - if doesn't exist, or previous try failed
-                    # 1. for every partition of dep_rdd:
-
-                    #     1. append to partitions_server
-                    #     2. broadcast a `job` with partition uuid
-                    # 2. append current job back to jobs
-                    # 3. DO NOT sleep(NETWORK_LATENCY * 2). it's better to it locally to avoid network transfer
-                    # 3. continue to next job
-
-            pass
-
 
 class TextFile(RDD):
     def __init__(self, filename):
@@ -213,6 +190,24 @@ class Filter(RDD):
         def get(partition):
             assert len(partition.parent_list) == 1
             return filter(func, partition.parent_list[0].get())
+        self.get = get
+
+
+def repartition_key_func(value, partition_num):
+    return hash(value) % partition_num
+
+
+class Repartition(RDD):
+    def __init__(self, parent, key_func=repartition_key_func):
+        super(Repartition, self).__init__(parent)
+        self.wide_dependency = True
+
+        def get(partition):
+            partition_num = len(partition.parent_list)
+            new_partition = []
+            for parent in partition.parent_list:
+                parent
+            pass
         self.get = get
 
 
