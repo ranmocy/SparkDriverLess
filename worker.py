@@ -63,15 +63,28 @@ if __name__ == '__main__':
     # 5. start a loop keep trying to get a job from jobs:
     while True:
         print('Fetching job...')
+
         # 1. connect to job's source, lock it up to prevent other workers to take it
         next_job = job_discover.take_next_job()  # block here
         print('Got job.')
+
         # 2. get the dumped_partition, unload it
         partition = get_partition_from_job(next_job)
         if partition is None:
             print 'Remote error at getting partition. Skip.'
             continue
         print 'got partition'
+
+        # 3. setup all partitions result, if they exists in partition_discover
+        def set_partition_result(target_partition):
+            partition_result = partition_discover.get_partition(target_partition.uuid)
+            if partition_result is not None:
+                target_partition.get = lambda: partition_result
+            for parent in target_partition.parent_list:
+                set_partition_result(parent)
+        set_partition_result(partition)
+        print 'set partitions results'
+
         # 3. run the target_partition
         try:
             # - if narrow_dependent:
@@ -98,5 +111,6 @@ if __name__ == '__main__':
             # 3. continue to next job
             continue
         print 'got result:'+str(result)
+
         # 4. add result to the partition server
         partition_server.add(uuid=partition.uuid, result=result)
