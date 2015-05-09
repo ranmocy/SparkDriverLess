@@ -111,7 +111,6 @@ class RDD(object):
     # - when action:
     @lazy
     def collect(self):
-
         # 1. create partitions from rdds (partition_num = len(workers))
         # 2. for every target_partition in partitions, find in partition_discover:
         #     - if exists, fetch result from corresponding worker

@@ -41,11 +41,6 @@ class CLI(code.InteractiveConsole):
                 pass
             readline.parse_and_bind("tab: complete")
 
-        # Pre-loaded
-        self.run("from rdd import *")
-        # FIXME:
-        self.run_file('myscript.py')
-
         self.interact("Welcome to SparkP2P!")
 
     def run(self, code_string):
@@ -57,10 +52,3 @@ class CLI(code.InteractiveConsole):
     def run_file(self, filename):
         with open(filename, 'r') as f:
             return self.run(f.read().rstrip())
-
-    # def raw_input(self, prompt):
-    #     self._green_stdin = fileobject.FileObject(sys.stdin)
-    #     self._green_stdout = fileobject.FileObject(sys.stdout)
-    #     """Override default input function"""
-    #     self._green_stdout.write("SparkP2P>>>")
-    #     return self._green_stdin.readline()[:-1]
