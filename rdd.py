@@ -76,6 +76,9 @@ class RDD(object):
     def reduce(self, *args):
         return Reduce(self, *args)
 
+    def reduce_by_key(self, *args):
+        return ReduceByKey(self, *args)
+
     @lazy_property
     def partition_num(self):
         if self.parent:
@@ -251,9 +254,11 @@ class GroupBy(RDD):
                 h[key].append(result)
 
             result = []
-            for key, values in enumerate(h):
+            for key in h:
+                values = h[key]
                 print list(values)
                 result.append((key, list(values)))
+
             return result
         self.get = get
 
@@ -263,14 +268,31 @@ class Reduce(RDD):
         super(Reduce, self).__init__(parent)
 
         def get(partition):
-            pass
+            assert len(partition.parent_list) is 1
+
+            result = []
+            for key, values in partition.parent_list[0].get():
+                acc = values[0]
+                for value in values[1:]:
+                    acc = func(acc, value)
+                result.append((key, acc))
+
+            return result
         self.get = get
 
 
 class ReduceByKey(RDD):
     def __init__(self, parent, func):
-        repartition = Repartition(parent, lambda item: item)
-        super(ReduceByKey, self).__init__()
+        new_parent = parent\
+            .group_by(lambda item: item[0])\
+            .map(lambda item: (item[0], map(lambda v: v[1], item[1])))\
+            .reduce(func)
+        super(ReduceByKey, self).__init__(new_parent)
+
+        def get(partition):
+            assert len(partition.parent_list) is 1
+            return partition.parent_list[0].get()
+        self.get = get
 
 
 if __name__ == '__main__':
@@ -281,5 +303,5 @@ if __name__ == '__main__':
         .flat_map(lambda line: line.split())\
         .filter(lambda item: item.isalpha())\
         .map(lambda item: (item, 1))\
-        .group_by(lambda item: item[0])
+        .reduce_by_key(lambda result, item: result + item)
     print f.collect()

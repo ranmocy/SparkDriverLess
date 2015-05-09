@@ -60,7 +60,7 @@ if __name__ == '__main__':
         if partition is None:
             print 'Remote error at getting partition. Skip.'
             continue
-        print 'got partition'
+        logger.debug('got partition')
 
         # 3. setup all partitions result, if they exists in partition_discover
         def set_partition_result(target_partition):
@@ -71,7 +71,7 @@ if __name__ == '__main__':
             for parent in target_partition.parent_list:
                 set_partition_result(parent)
         set_partition_result(partition)
-        print 'set partitions results'
+        logger.debug('set partitions results')
 
         # 3. run the target_partition
         try:
