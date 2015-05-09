@@ -6,6 +6,7 @@ import threading
 import gevent
 import zerorpc
 
+from colors import warn, error
 from broadcast import Service, Discover, Broadcaster
 from helper import get_my_ip, get_open_port, get_zerorpc_address, load
 
@@ -13,6 +14,14 @@ from helper import get_my_ip, get_open_port, get_zerorpc_address, load
 __author__ = 'ranmocy'
 _JOB_CASTER_TYPE = '_spark.job.'
 logger = logging.getLogger(__name__)
+
+
+class JobFinished(Exception):
+    pass
+
+
+class JobTaken(Exception):
+    pass
 
 
 class JobServerHandler(object):
@@ -33,11 +42,11 @@ class JobServerHandler(object):
             # self.lock.acquire()
             if uuid not in self.services:  # job is finished
                 print 'finished job', uuid
-                return None
+                raise JobFinished()
             service = self.services[uuid]
             if not service.is_active():  # job is taken
                 print 'taken job'
-                return None
+                raise JobTaken()
 
             # De-activate to avoid multiple worker doing same job
             service.deactivate()
@@ -119,7 +128,15 @@ class JobDiscover(Discover):
             client = zerorpc.Client()
             client.connect(job.address)
             obj_str = client.take(job.uuid)
-        except zerorpc.RemoteError, zerorpc.LostRemote:
+            if obj_str is None:
+                raise Exception("get_partition_from_job: Can't be None.")
+        except (zerorpc.RemoteError, zerorpc.LostRemote) as e:
+            if e.name == JobTaken.__name__:
+                print warn('Remote job is taken. Skip.')
+            elif e.name == JobFinished.__name__:
+                print warn('Remote job is finished. Skip.')
+            else:
+                print error('Remote error at getting partition. Skip.')
             return None
         else:
             logger.info('take job:' + job.address)

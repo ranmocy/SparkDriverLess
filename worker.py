@@ -59,7 +59,6 @@ if __name__ == '__main__':
         # 2. get the dumped_partition, unload it
         partition = job_discover.get_partition_from_job(next_job)
         if partition is None:
-            print error('Remote error at getting partition. Skip.')
             continue
         logger.debug('got partition')
 

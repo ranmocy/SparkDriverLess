@@ -57,8 +57,6 @@ def dump(obj):
 
 
 def load(obj_str):
-    if obj_str is None:
-        import ipdb; ipdb.set_trace()
     return pickle.loads(obj_str)
 
 
