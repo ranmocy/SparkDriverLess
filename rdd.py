@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import logging
+import itertools
+
 logging.basicConfig(level=logging.DEBUG, filename='client.log', filemode='a')
 logger = logging.getLogger(__name__)
 logger.critical("\n=====Client Start=====\n")
@@ -63,11 +65,14 @@ class RDD(object):
     def map(self, *args):
         return Map(self, *args)
 
+    def flat_map(self, *args):
+        return FlatMap(self, *args)
+
     def filter(self, *args):
         return Filter(self, *args)
 
-    def repartition(self, *args):
-        return Repartition(self, *args)
+    def group_by(self, *args):
+        return GroupBy(self, *args)
 
     def reduce(self, *args):
         return Reduce(self, *args)
@@ -183,8 +188,19 @@ class Map(RDD):
         super(Map, self).__init__(parent)
 
         def get(partition):
-            assert len(partition.parent_list) == 1
+            assert len(partition.parent_list) is 1
             return map(func, partition.parent_list[0].get())
+        self.get = get
+
+
+class FlatMap(RDD):
+    def __init__(self, parent, func):
+        super(FlatMap, self).__init__(parent)
+
+        def get(partition):
+            assert len(partition.parent_list) is 1
+            l = map(func, partition.parent_list[0].get())
+            return [x for item in l for x in item]
         self.get = get
 
 
@@ -193,17 +209,13 @@ class Filter(RDD):
         super(Filter, self).__init__(parent)
 
         def get(partition):
-            assert len(partition.parent_list) == 1
+            assert len(partition.parent_list) is 1
             return filter(func, partition.parent_list[0].get())
         self.get = get
 
 
-def repartition_key_func(value, partition_num):
-    return id(value) % partition_num
-
-
 class Repartition(RDD):
-    def __init__(self, parent, key_func=repartition_key_func):
+    def __init__(self, parent, key_func):
         super(Repartition, self).__init__(parent)
         self.wide_dependency = True
 
@@ -213,12 +225,37 @@ class Repartition(RDD):
                 raise DependencyMissing
 
             partition_num = len(partition.parent_list)
+            filter_func = lambda item: (hash(key_func(item)) % partition_num) is partition.part_id
+
             new_partition = []
             for parent_partition in partition.parent_list:
-                new_partition += filter(lambda item: key_func(item, partition_num) is partition.part_id,
-                                        parent_partition.get())
+                new_partition += filter(filter_func, parent_partition.get())
 
             return new_partition
+        self.get = get
+
+
+class GroupBy(RDD):
+    def __init__(self, parent, func):
+        repartition = Repartition(parent, func)
+        super(GroupBy, self).__init__(repartition)
+
+        def get(partition):
+            assert len(partition.parent_list) is 1
+            parent_result = partition.parent_list[0].get()
+
+            h = {}
+            for result in parent_result:
+                key = func(result)
+                if key not in h:
+                    h[key] = []
+                h[key].append(result)
+
+            result = []
+            for key, values in enumerate(h):
+                print list(values)
+                result.append((key, list(values)))
+            return result
         self.get = get
 
 
@@ -231,9 +268,19 @@ class Reduce(RDD):
         self.get = get
 
 
+class ReduceByKey(RDD):
+    def __init__(self, parent, func):
+        repartition = Repartition(parent, lambda item: item)
+        super(ReduceByKey, self).__init__()
+
+
 if __name__ == '__main__':
     context = Context()
 
-    f = context.text_file('myfile').map(lambda s: s.split()).filter(lambda a: int(a[1]) > 2)
-    f = f.repartition()
+    f = context\
+        .text_file('myfile')\
+        .flat_map(lambda line: line.split())\
+        .filter(lambda item: item.isalpha())\
+        .map(lambda item: (item, 1))\
+        .group_by(lambda item: item[0])
     print f.collect()
