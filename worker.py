@@ -7,6 +7,7 @@ logger.critical("\n=====Worker Start=====\n")
 
 import uuid
 
+from colors import error, warn, success, info
 from helper import get_my_ip, get_zerorpc_address, get_open_port, DependencyMissing
 from broadcast import Service, Discover, Broadcaster
 from job_caster import JobDiscover, JobServer
@@ -49,18 +50,23 @@ if __name__ == '__main__':
     partition_server = PartitionServer()
     # 5. start a loop keep trying to get a job from jobs:
     while True:
-        print('Fetching job...')
+        print info('Fetching job...')
 
         # 1. connect to job's source, lock it up to prevent other workers to take it
         next_job = job_discover.take_next_job()  # block here
-        print('Got job.')
+        print info('Got job.')
 
         # 2. get the dumped_partition, unload it
         partition = job_discover.get_partition_from_job(next_job)
         if partition is None:
-            print 'Remote error at getting partition. Skip.'
+            print error('Remote error at getting partition. Skip.')
             continue
         logger.debug('got partition')
+
+        # 3. check partition in partition_server
+        if partition_server.exists(partition.uuid):
+            print warn('Finished job. Skip')
+            continue
 
         # 3. setup all partitions result, if they exists in partition_discover
         def set_partition_result(target_partition):
@@ -94,11 +100,11 @@ if __name__ == '__main__':
                 job_server.add(missing)
             # 2. append current job back to jobs
             job_discover.suspend_job(next_job)
-            print 'Wide dependency missing. Suspend the job.'
+            print warn('Wide dependency missing. Suspend the job.')
             # 3. DO NOT sleep(NETWORK_LATENCY * 2). it's better to it locally to avoid network transfer
             # 3. continue to next job
             continue
-        print 'got result:'+str(result)
+        print success('got result:'+partition.uuid)
 
         # 4. add result to the partition server
         partition_server.add(uuid=partition.uuid, result=result)

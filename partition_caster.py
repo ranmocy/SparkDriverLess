@@ -5,7 +5,7 @@ import gevent
 import zerorpc
 
 from broadcast import Service, Discover, Broadcaster
-from helper import get_my_ip, get_open_port, get_zerorpc_address, dump, load, lazy
+from helper import get_my_ip, get_open_port, get_zerorpc_address, dump, load, lazy, singleton
 
 
 __author__ = 'ranmocy'
@@ -29,7 +29,7 @@ class PartitionServerHandler(object):
         if uuid not in self.partitions:
             print 'Missing partition', uuid, self.partitions
             return None
-        print 'return result:' + str(self.partitions[uuid].result)
+        print 'return result:' + uuid
         return dump(self.partitions[uuid].result)
 
 
@@ -47,8 +47,11 @@ class PartitionServer(Broadcaster):
         super(PartitionServer, self).__del__()
         self.handler.__del__()
 
+    def exists(self, uuid):
+        return uuid in self.partitions
+
     def add(self, uuid, result=None):
-        if uuid in self.partitions:
+        if self.exists(uuid):
             logger.warning('duplicated partition service:' + uuid)
             return
         if result is None:
@@ -82,7 +85,6 @@ class PartitionDiscover(Discover):
                     c = zerorpc.Client()
                     c.connect(result.address)
                     partition_result = load(c.fetch_partition(uuid))
-                    print 'got partition_result:'+str(partition_result)
                     self.cache[uuid] = partition_result
                     return partition_result
                 except zerorpc.RemoteError, zerorpc.LostRemote:

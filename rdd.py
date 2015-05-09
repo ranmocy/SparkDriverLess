@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 
 import logging
-import itertools
 
 logging.basicConfig(level=logging.DEBUG, filename='client.log', filemode='a')
 logger = logging.getLogger(__name__)
 logger.critical("\n=====Client Start=====\n")
 
 import os
-import uuid
 
 import gevent
 
+from colors import success, warn, error, info
 from helper import lazy_property, lazy, singleton, dump, DependencyMissing
 from partition_caster import PartitionDiscover
 from worker import WorkerDiscover
@@ -20,7 +19,6 @@ from job_caster import JobServer
 
 class Partition(object):
     def __init__(self, part_id=None, func=None):
-        print self.__class__.__name__
         self.part_id = part_id
         self.uuid = str(hash(dump(func))) + ':' + str(part_id)
         self.func = func
@@ -119,7 +117,10 @@ class RDD(object):
         #     - if exists, fetch result from corresponding worker
         partition_discover = self.context.partition_discover
         results = [partition_discover.get_partition(partition.uuid) for partition in self.partitions]
-        print 'collect', results
+
+        missing_index = [None if result is not None else i for i, result in enumerate(results)]
+        missing_index = filter(lambda m: m is not None, missing_index)
+        print info('collect', missing_index)
 
         # add to job server if missing
         job_server = self.context.job_server
@@ -135,7 +136,7 @@ class RDD(object):
             missing_index = filter(lambda m: m is not None, missing_index)
             if len(missing_index) is 0:
                 break
-            print 'keep discovering', missing_index
+            # print 'keep discovering', missing_index
 
             for i in missing_index:
                 partition = self.partitions[i]
@@ -144,7 +145,7 @@ class RDD(object):
                 # if success this time
                 if results[i] is not None:
                     # 4. stop broadcast the `job`
-                    print 'stop '+str(i)
+                    print success('Got '+str(i)+":"+str(results[i]))
                     job_server.remove(partition)
 
             gevent.sleep(0.1)
@@ -256,7 +257,6 @@ class GroupBy(RDD):
             result = []
             for key in h:
                 values = h[key]
-                print list(values)
                 result.append((key, list(values)))
 
             return result

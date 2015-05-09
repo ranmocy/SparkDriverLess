@@ -30,7 +30,7 @@ class JobServerHandler(object):
 
     def take(self, uuid):
         try:
-            self.lock.acquire()
+            # self.lock.acquire()
             if uuid not in self.services:  # job is finished
                 print 'finished job', uuid
                 return None
@@ -57,7 +57,8 @@ class JobServerHandler(object):
             logger.debug("Return job:" + service.name)
             return service.partition.dump()
         finally:
-            self.lock.release()
+            # self.lock.release()
+            pass
 
 
 class JobServer(Broadcaster):
@@ -128,17 +129,19 @@ class JobDiscover(Discover):
 
     def take_next_job(self):
         while True:
-            gevent.sleep(0.5)
             try:
-                result = self.queue.pop()
+                result = self.queue.popleft()
                 if result.uuid not in self.results:
                     # outdated result
                     print 'Job outdated:'+result.uuid
+                    gevent.sleep(0.5)
                     continue
             except IndexError:
+                gevent.sleep(0.5)
                 continue
             else:
                 return result
 
     def suspend_job(self, result):
-        self.queue.append(result)
+        gevent.spawn_later(1, self.queue.append, result)
+        # self.queue.append(result)
