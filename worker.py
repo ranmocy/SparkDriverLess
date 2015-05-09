@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import logging
+import gevent
+
 logging.basicConfig(level=logging.DEBUG, filename='worker.log', filemode='a')
 logger = logging.getLogger(__name__)
 logger.critical("\n=====Worker Start=====\n")
@@ -37,18 +39,6 @@ class WorkerDiscover(Discover):
         return len(self.results)
 
 
-def get_partition_from_job(job):
-    try:
-        client = zerorpc.Client()
-        client.connect(job.address)
-        obj_str = client.take(job.uuid)
-    except zerorpc.RemoteError, zerorpc.LostRemote:
-        return None
-    else:
-        logger.info('take job:' + job.address)
-        return load(obj_str)
-
-
 if __name__ == '__main__':
     # 1. broadcast a `worker` with new generated uuid, {address=ip:port}
     worker = WorkerServer()
@@ -62,6 +52,7 @@ if __name__ == '__main__':
     partition_server = PartitionServer()
     # 5. start a loop keep trying to get a job from jobs:
     while True:
+        gevent.sleep(1)  # FIXME:
         print('Fetching job...')
 
         # 1. connect to job's source, lock it up to prevent other workers to take it
@@ -69,7 +60,7 @@ if __name__ == '__main__':
         print('Got job.')
 
         # 2. get the dumped_partition, unload it
-        partition = get_partition_from_job(next_job)
+        partition = job_discover.get_partition_from_job(next_job)
         if partition is None:
             print 'Remote error at getting partition. Skip.'
             continue
@@ -80,6 +71,7 @@ if __name__ == '__main__':
             partition_result = partition_discover.get_partition(target_partition.uuid)
             if partition_result is not None:
                 target_partition.get = lambda: partition_result
+                target_partition.evaluated = True
             for parent in target_partition.parent_list:
                 set_partition_result(parent)
         set_partition_result(partition)
@@ -95,7 +87,7 @@ if __name__ == '__main__':
             #   - try search dep_partitions in rdds
             #     - if exists, fetch result from corresponding worker
             not_exists_in_discover = lambda p: partition_discover.get_partition(p.uuid) is None
-            missing_partitions = filter(not_exists_in_discover, partition.parent_partitions)
+            missing_partitions = filter(not_exists_in_discover, partition.parent_list)
             assert len(missing_partitions) > 0  # otherwise there won't be exception
 
             # - if doesn't exist, or previous try failed

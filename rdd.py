@@ -9,9 +9,8 @@ import os
 import uuid
 
 import gevent
-import zerorpc
 
-from helper import lazy_property, lazy, singleton, dump
+from helper import lazy_property, lazy, singleton, dump, DependencyMissing
 from partition_caster import PartitionDiscover
 from worker import WorkerDiscover
 from job_caster import JobServer
@@ -23,11 +22,14 @@ class Partition(object):
         self.part_id = part_id
         self.uuid = str(uuid) + ':' + str(part_id)
         self.func = func
+        self.evaluated = False
         self.parent_list = []
 
     @lazy
     def get(self):
-        return self.func(self)
+        result = self.func(self)
+        self.evaluated = True
+        return result
 
     def dump(self):
         return dump(self)
@@ -64,8 +66,11 @@ class RDD(object):
     def filter(self, *args):
         return Filter(self, *args)
 
-    # def reduce(self, *args):
-    # return Reduce(self, *args)
+    def repartition(self, *args):
+        return Repartition(self, *args)
+
+    def reduce(self, *args):
+        return Reduce(self, *args)
 
     @lazy_property
     def partition_num(self):
@@ -119,7 +124,7 @@ class RDD(object):
 
         # 3. keep discovering rdds until found the target_rdd
         while True:
-            missing_index = [None if result else i for i, result in enumerate(results)]
+            missing_index = [None if result is not None else i for i, result in enumerate(results)]
             missing_index = filter(lambda m: m is not None, missing_index)
             if len(missing_index) is 0:
                 break
@@ -194,7 +199,7 @@ class Filter(RDD):
 
 
 def repartition_key_func(value, partition_num):
-    return hash(value) % partition_num
+    return id(value) % partition_num
 
 
 class Repartition(RDD):
@@ -203,10 +208,25 @@ class Repartition(RDD):
         self.wide_dependency = True
 
         def get(partition):
+            not_evaluated = filter(lambda p: not p.evaluated, partition.parent_list)
+            if not_evaluated:
+                raise DependencyMissing
+
             partition_num = len(partition.parent_list)
             new_partition = []
-            for parent in partition.parent_list:
-                parent
+            for parent_partition in partition.parent_list:
+                new_partition += filter(lambda item: key_func(item, partition_num) is partition.part_id,
+                                        parent_partition.get())
+
+            return new_partition
+        self.get = get
+
+
+class Reduce(RDD):
+    def __init__(self, parent, func):
+        super(Reduce, self).__init__(parent)
+
+        def get(partition):
             pass
         self.get = get
 
@@ -215,4 +235,5 @@ if __name__ == '__main__':
     context = Context()
 
     f = context.text_file('myfile').map(lambda s: s.split()).filter(lambda a: int(a[1]) > 2)
+    f = f.repartition()
     print f.collect()

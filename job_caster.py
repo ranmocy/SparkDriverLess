@@ -7,7 +7,7 @@ import gevent
 import zerorpc
 
 from broadcast import Service, Discover, Broadcaster
-from helper import get_my_ip, get_open_port, get_zerorpc_address
+from helper import get_my_ip, get_open_port, get_zerorpc_address, load
 
 
 __author__ = 'ranmocy'
@@ -98,6 +98,7 @@ class JobDiscover(Discover):
         queue = deque()
         self.queue = queue
         discover = self
+        self.partition_cache = {}
 
         def found_func(seeker, result):
             for uuid in discover.results:
@@ -108,6 +109,22 @@ class JobDiscover(Discover):
             logger.info("Found "+result.type+":"+result.sname+" at "+result.address)
 
         super(JobDiscover, self).__init__(type=_JOB_CASTER_TYPE, found_func=found_func)
+
+    def get_partition_from_job(self, job):
+        if job.uuid in self.partition_cache:
+            return self.partition_cache[job.uuid]
+
+        try:
+            client = zerorpc.Client()
+            client.connect(job.address)
+            obj_str = client.take(job.uuid)
+        except zerorpc.RemoteError, zerorpc.LostRemote:
+            return None
+        else:
+            logger.info('take job:' + job.address)
+            partition = load(obj_str)
+            self.partition_cache[job.uuid] = partition
+            return partition
 
     def take_next_job(self):
         try_interval = 0.1
