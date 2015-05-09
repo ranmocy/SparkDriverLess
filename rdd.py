@@ -19,10 +19,10 @@ from job_caster import JobServer
 
 
 class Partition(object):
-    def __init__(self, uuid=None, part_id=None, func=None):
-        self.rdd_uuid = uuid
+    def __init__(self, part_id=None, func=None):
+        print self.__class__.__name__
         self.part_id = part_id
-        self.uuid = str(uuid) + ':' + str(part_id)
+        self.uuid = str(hash(dump(func))) + ':' + str(part_id)
         self.func = func
         self.evaluated = False
         self.parent_list = []
@@ -56,7 +56,6 @@ class Context(object):
 class RDD(object):
     def __init__(self, parent):
         """[parent,func] or [context], one and only one."""
-        self.uuid = str(uuid.uuid4())
         self.parent = parent
         self.context = Context()
         self.wide_dependency = False
@@ -92,7 +91,7 @@ class RDD(object):
     @lazy_property
     def partitions(self):
         if self.parent is None:
-            return [Partition(uuid=self.uuid, part_id=i, func=self.get) for i in range(self.partition_num)]
+            return [Partition(part_id=i, func=self.get) for i in range(self.partition_num)]
 
         partitions = []
         parent_partitions = self.parent.partitions
@@ -100,7 +99,7 @@ class RDD(object):
             raise Exception(
                 "partitions length mismatched with parent!" + str(len(partitions)) + ',' + str(self.partition_num))
         for i in range(self.partition_num):
-            p = Partition(uuid=self.uuid, part_id=i, func=self.get)
+            p = Partition(part_id=i, func=self.get)
             if self.wide_dependency:
                 p.parent_list = parent_partitions
             else:

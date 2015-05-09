@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import logging
-import gevent
 
 logging.basicConfig(level=logging.DEBUG, filename='worker.log', filemode='a')
 logger = logging.getLogger(__name__)
@@ -8,9 +7,7 @@ logger.critical("\n=====Worker Start=====\n")
 
 import uuid
 
-import zerorpc
-
-from helper import get_my_ip, get_zerorpc_address, get_open_port, load, DependencyMissing
+from helper import get_my_ip, get_zerorpc_address, get_open_port, DependencyMissing
 from broadcast import Service, Discover, Broadcaster
 from job_caster import JobDiscover, JobServer
 from partition_caster import PartitionServer, PartitionDiscover
