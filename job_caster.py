@@ -130,13 +130,16 @@ class JobDiscover(Discover):
             obj_str = client.take(job.uuid)
             if obj_str is None:
                 raise Exception("get_partition_from_job: Can't be None.")
-        except (zerorpc.RemoteError, zerorpc.LostRemote) as e:
+        except zerorpc.RemoteError as e:
             if e.name == JobTaken.__name__:
                 print warn('Remote job is taken. Skip.')
             elif e.name == JobFinished.__name__:
                 print warn('Remote job is finished. Skip.')
             else:
                 print error('Remote error at getting partition. Skip.')
+            return None
+        except zerorpc.LostRemote:
+            print error('Lost remote at getting partition. Skip.')
             return None
         else:
             logger.info('take job:' + job.address)
