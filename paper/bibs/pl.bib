@@ -1,0 +1,366 @@
+% pl.bib
+%
+% References Programming Language Research
+
+% General
+
+@article{Andrews:1988:SR,
+        author  =       "G. R. Andrews and R. A. Olsson and M. Coffin and
+                        I. Elshoff and K. Nilsen and T. Purdin and
+                        G. Townsend",
+        title   =       "An Overview of the {SR} Language and Implementation",
+        journal =       "ACM Transactions on Programming Languages and Systems",
+        month   =       jan,
+        year    =       1988,
+        volume  =       10,
+        number  =       1,
+        pages   =       "51--86"
+}
+
+@Article{Bal:1989:CS,
+  author =       "H. E. Bal and J. G. Steiner and A. S. Tanenbaum",
+  title =        "Programming languages for distributed computing systems",
+  journal =      "ACM Computing Surveys",
+  year =         1989,
+  volume =       21,
+  number =       3,
+  pages =        "261--322",
+  month =        "September"
+}
+
+@Article{Bal:1992:Orca,
+  author =	"H. E. Bal and M. F. Kaashoek and A. S. Tanenbaum",
+  year = 	"March 1992",
+  journal =	"IEEE Transactions on Software Engineering",
+  keywords =	"obc olit orca obcp",
+  number =	"3",
+  pages =	"190--205",
+  title =	"Orca: {A} Language for Parallel Programming of
+		 Distributed Systems",
+  volume =	"SE-18",
+}
+
+@Article{Bal:1998:Orca,
+  author =	"Henri E. Bal and Raoul Bhoedjang and Rutger Hofman and
+		 Ceriel Jacobs and Koen Langendoen and Tim R{\"u}hl and
+		 M. Frans Kaashoek",
+  title =	"Performance Evaluation of the {Orca} Shared-Object
+		 System",
+  journal =	"ACM Transactions on Computer Systems",
+  volume =	"16",
+  number =	"1",
+  pages =	"1--40",
+  month =	feb,
+  year = 	"1998",
+  CODEN =	"ACSYEC",
+  ISSN = 	"0734-2071",
+  bibdate =	"Wed Jan 13 18:36:53 MST 1999",
+  bibsource =	"http://www.acm.org/pubs/contents/journals/tocs/",
+  URL =  	"http://www.acm.org:80/pubs/citations/journals/tocs/1998-16-1/p1-bal/",
+  abstract =	"Orca is a portable, object-based distributed shared
+		 memory (DSM) system. This article studies and evaluates
+		 the design choices made in the Orca system and compares
+		 Orca with other DSMs. The article gives a quantitative
+		 analysis of Orca's coherence protocol (based on
+		 write-updates with function shipping), the totally
+		 ordered group communication protocol, the strategy for
+		 object placement, and the all-software, user-space
+		 architecture. Performance measurements for 10 parallel
+		 applications illustrate the trade-offs made in the
+		 design of Orca and show that essentially the right
+		 design decisions have been made. A write-update
+		 protocol with function shipping is effective for Orca,
+		 especially since it is used in combination with
+		 techniques that avoid replicating objects that have a
+		 low read/write ratio. The overhead of totally ordered
+		 group communication on application performance is low.
+		 The Orca system is able to make near-optimal decisions
+		 for object placement and replication. In addition, the
+		 article compares the performance of Orca with that of a
+		 page-based DSM (TreadMarks) and another object-based
+		 DSM (CRL). It also analyzes the communication overhead
+		 of the DSMs for several applications. All performance
+		 measurements are done on a 32-node Pentium Pro cluster
+		 with Myrinet and Fast Ethernet networks. The results
+		 show that Orca programs send fewer messages and less
+		 data than the TreadMarks and CRL programs and obtain
+		 better speedups.",
+  acknowledgement = "Nelson H. F. Beebe, University of Utah, Department
+		 of Mathematics, 110 LCB, 155 S 1400 E RM 233, Salt Lake
+		 City, UT 84112-0090, USA, Tel: +1 801 581 5254, FAX: +1
+		 801 581 4148, e-mail: \path|beebe@math.utah.edu|,
+		 \path|beebe@acm.org|, \path|beebe@computer.org|
+		 (Internet), URL:
+		 \path|http://www.math.utah.edu/~beebe/|",
+  keywords =	"design; languages; performance",
+  subject =	"{\bf D.3.4} Software, PROGRAMMING LANGUAGES,
+		 Processors, Run-time environments. {\bf D.1.3}
+		 Software, PROGRAMMING TECHNIQUES, Concurrent
+		 Programming, Distributed programming. {\bf D.1.3}
+		 Software, PROGRAMMING TECHNIQUES, Concurrent
+		 Programming, Parallel programming. {\bf D.3.2}
+		 Software, PROGRAMMING LANGUAGES, Language
+		 Classifications, Concurrent, distributed, and parallel
+		 languages. {\bf D.3.4} Software, PROGRAMMING LANGUAGES,
+		 Processors, Compilers.",
+}
+
+
+@Article{Carriero:1989:CS,
+  author =	"N. Carriero and D. Gelernter",
+  title =	"How to Write Parallel Programs: {A} Guide to the
+		 Perplexed",
+  journal =	"ACM Computing Surveys",
+  volume =	"21",
+  number =	"3",
+  pages =	"323--357",
+  month =	sep,
+  year = 	"1989",
+  URL_x =  	"http://www.cs.yale.edu/Linda/linda-lang.html",
+  note_x = 	"http://www.cs.yale.edu/Linda/linda-lang.html",
+}
+
+@article{Jul:1988:Emerald,
+    author = "Eric Jul and Henry Levy and Norman Hutchinson and Andrew Black",
+    title = "Fine-Grained Mobility in the {E}merald System",
+    journal = "ACM Transactions on Computer Systems",
+    volume = "6",
+    number = "1",
+    month = "February",
+    publisher = "ACM Press",
+    address = "New York, NY, USA",
+    pages = "109--133",
+    year = "1988",
+    url = "citeseer.ist.psu.edu/jul88finegrained.html"
+}
+
+@inproceedings{Black:1986:Emerald,
+ author = {Black,, Andrew and Hutchinson,, Norman and Jul,, Eric and Levy,, Henry},
+ title = {Object structure in the Emerald system},
+ booktitle = {OOPLSA '86: Conference proceedings on Object-oriented programming systems, languages and applications},
+ year = {1986},
+ isbn = {0-89791-204-7},
+ pages = {78--86},
+ location = {Portland, Oregon, United States},
+ doi = {http://doi.acm.org/10.1145/28697.28706},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@article{Keen:2004:JR,
+ author = {Keen,, Aaron W. and Ge,, Tingjian and Maris,, Justin T. and Olsson,, Ronald A.},
+ title = {JR: Flexible distributed programming in an extended Java},
+ journal = {ACM Trans. Program. Lang. Syst.},
+ volume = {26},
+ number = {3},
+ year = {2004},
+ issn = {0164-0925},
+ pages = {578--608},
+ doi = {http://doi.acm.org/10.1145/982158.982162},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+
+@Misc{Lua:2007,
+  key =  	{Lua},
+  note = 	{\url{http://www.lua.org}},
+  title =	{The Programming Language {Lua}},
+}
+
+@Misc{Ruby:2007,
+  key =  	{Ruby},
+  note = 	{\url{http://www.ruby-lang.org}},
+  title =	{The {Ruby} Programming Language},
+}
+
+% Chapel
+
+@Misc{Chapel:2007,
+  key =  	{Chapel},
+  note = 	{\url{http://chapel.cs.washington.edu/}},
+  title =	{The {Cascade} High-Productivity Language},
+}
+
+@InProceedings{Callahan:2004:HIPS:X10,
+  title =	"The Cascade High Productivity Language",
+  author =	"David Callahan and Bradford L. Chamberlain and Hans P. Zima",
+  bibdate =	 "2007-04-11",
+  booktitle_x =	"HIPS",
+  booktitle =	"of the 9th International Workshop on High-Level Parallel Programming Models and Supportive Environments, {HIPS}, Santa Fe, {NM}, {USA}",
+  publisher =	"IEEE Computer Society",
+  month     = "April",
+  year = 	"2005",
+  pages =	"52--60",
+  URL =  	"http://doi.acm.org/10.1145/1094811.1094852",
+}
+
+@article{Chamberlain:2007:Chapel,
+  author = {Chamberlain,, B.L. and Callahan,, D. and Zima,, H.P.},
+  title = {Parallel Programmability and the Chapel Language},
+  journal = {Int. J. High Perform. Comput. Appl.},
+  volume = {21},
+  number = {3},
+  year = {2007},
+  issn = {1094-3420},
+  pages = {291--312},
+  doi = {http://dx.doi.org/10.1177/1094342007078442},
+  publisher = {Sage Publications, Inc.},
+  address = {Thousand Oaks, CA, USA},
+}
+
+% Fortress
+
+@Misc{Fortress:2007,
+  key =  	{Fortress},
+  note = 	{\url{http://research.sun.com/projects/plrg/}},
+  title =	{The {Fortress} Programming Language},
+}
+
+% X10
+
+@Misc{X10:2007,
+  key =  	{X10},
+  note = 	{\url{http://www.research.ibm.com/x10}},
+  title =	{The {X10} Programming Language},
+}
+
+@InProceedings{Charles:2006:OOPSLA:X10,
+  title =	"{X10}: an object-oriented approach to non-uniform
+		     cluster computing",
+  author =	"Philippe Charles and Christian Grothoff and Vijay A.
+		     Saraswat and Christopher Donawa and Allan Kielstra and
+		     Kemal Ebcioglu and Christoph von Praun and Vivek
+		     Sarkar",
+  bibdate =	 "2006-02-13",
+  bibsource = "DBLP, http://dblp.uni-trier.de/db/conf/oopsla/oopsla2005.html#CharlesGSDKEPS05",
+  booktitle_x =	"OOPSLA",
+  booktitle =	"Proceedings of the 20th Annual {ACM} {SIGPLAN}
+		 Conference on Object-Oriented Programming, Systems,
+		 Languages, and Applications, {OOPSLA},
+		 San Diego, {CA}, {USA}",
+  publisher =	"ACM",
+  month =   "October",
+  year = 	"2005",
+  editor_x =	"Ralph Johnson and Richard P. Gabriel",
+  ISBN = 	"1-59593-031-0",
+  pages =	"519--538",
+  URL =  	"http://doi.acm.org/10.1145/1094811.1094852",
+}
+
+@InProceedings{Saraswat:2005:CONCUR:X10,
+  title =	"Concurrent Clustered Programming",
+  author =	"Vijay A. Saraswat and Radha Jagadeesan",
+  bibdate =	"2005-09-14",
+  bibsource =	"DBLP,
+		 http://dblp.uni-trier.de/db/conf/concur/concur2005.html#SaraswatJ05",
+  booktitle_x =	"CONCUR",
+  booktitle =	"Concurrency Theory, 16th International
+		 Conference, {CONCUR}, San Francisco, {CA}, {USA}",
+  publisher =	"Springer",
+  month = "August",
+  year = 	"2005",
+  volume =	"3653",
+  editor_x =	"Mart{\'i}n Abadi and Luca de Alfaro",
+  ISBN = 	"3-540-28309-9",
+  pages =	"353--367",
+  series =	"Lecture Notes in Computer Science",
+  URL =  	"http://dx.doi.org/10.1007/11539452_28",
+}
+
+@article{Hoare:1978:CSP,
+ author = {Hoare,, C. A. R.},
+ title = {Communicating sequential processes},
+ journal = {Commun. ACM},
+ volume = {21},
+ number = {8},
+ year = {1978},
+ issn = {0001-0782},
+ pages = {666--677},
+ doi = {http://doi.acm.org/10.1145/359576.359585},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+
+@inproceedings{Strom:1983:NIL,
+ author = {Strom,, Robert E. and Yemini,, Shaula},
+ title = {NIL: An integrated language and system for distributed programming},
+ booktitle = {SIGPLAN '83: Proceedings of the 1983 ACM SIGPLAN symposium on
+Programming language issues in software systems},
+ year = {1983},
+ isbn = {0-89791-108-3},
+ pages = {73--82},
+ location = {San Francisco, California, United States},
+ doi = {http://doi.acm.org/10.1145/800226.806853},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+
+@article{Birrell:1984:RPC,
+ author = {Birrell,, Andrew D. and Nelson,, Bruce Jay},
+ title = {Implementing remote procedure calls},
+ journal = {ACM Trans. Comput. Syst.},
+ volume = {2},
+ number = {1},
+ year = {1984},
+ issn = {0734-2071},
+ pages = {39--59},
+ doi = {http://doi.acm.org/10.1145/2080.357392},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+
+@inproceedings{Carriero:1986:Linda,
+ author = {Carriero,, Nicholas and Gelernter,, David and Leichter,, Jerrold},
+ title = {Distributed data structures in Linda},
+ booktitle = {POPL '86: Proceedings of the 13th ACM SIGACT-SIGPLAN
+symposium on Principles of programming languages},
+ year = {1986},
+ pages = {236--242},
+ location = {St. Petersburg Beach, Florida},
+ doi = {http://doi.acm.org/10.1145/512644.512666},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+
+@article{Hansen:1978:DP,
+ author = {Hansen,, Per Brinch},
+ title = {Distributed processes: a concurrent programming concept},
+ journal = {Commun. ACM},
+ volume = {21},
+ number = {11},
+ year = {1978},
+ issn = {0001-0782},
+ pages = {934--941},
+ doi = {http://doi.acm.org/10.1145/359642.359651},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+
+@article{Silberschatz:1981:Ada,
+ author = {Silberschatz,, Abraham},
+ title = {On the synchronization mechanism of the ADA language},
+ journal = {SIGPLAN Not.},
+ volume = {16},
+ number = {2},
+ year = {1981},
+ issn = {0362-1340},
+ pages = {96--103},
+ doi = {http://doi.acm.org/10.1145/954269.954283},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+
+@article{May:1983:Occam,
+ author = {May,, David},
+ title = {OCCAM},
+ journal = {SIGPLAN Not.},
+ volume = {18},
+ number = {4},
+ year = {1983},
+ issn = {0362-1340},
+ pages = {69--79},
+ doi = {http://doi.acm.org/10.1145/948176.948183},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+

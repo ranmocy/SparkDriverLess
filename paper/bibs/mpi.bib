@@ -1,0 +1,118 @@
+% mpi.bib 
+%
+% References for all things MPI
+
+
+@InProceedings{Benson:2003:Dissemination,
+  title =	"A Comparison of {MPICH} Allgather Algorithms on
+		 Switched Networks",
+  author =	"G. D. Benson and C. Chu and Q. Huang and
+		 S. G. Caglar",
+  booktitle_x =	"PVM/MPI",
+  booktitle =	"Recent Advances in Parallel Virtual Machine and
+		 Message Passing Interface, 10th European {PVM}/{MPI}
+		 Users' Group Meeting, Venice, Italy, September 29 -
+		 October 2, 2003, Proceedings",
+  publisher =	"Springer",
+  year = 	"2003",
+  volume =	"2840",
+  editor_x =	"Jack Dongarra and Domenico Laforenza and Salvatore
+		 Orlando",
+  ISBN = 	"3-540-20149-1",
+  pages =	"335--343",
+  series =	"Lecture Notes in Computer Science",
+}
+
+@Article{Butler:2001:MPD,
+  author = 	 {Ralph Butler and William Gropp and Ewing Lusk},
+  title = 	 {Components and Interfaces of a Process Management System for
+                  Parallel Programs},
+  journal =  {Parallel Computing},
+  month =        OCT,
+  year = 	 2001,
+  volume =	 27,
+  number =   11,
+  pages =	 {1417--1429},
+  abstract =   {Parallel jobs are different from sequential jobs and require a
+        different type of process management. We present here a process
+        management system for parallel programs such as those written
+        using MPI. A primary goal of the system, which we call MPD (for
+        multipurpose daemon), is to be scalable. By this we mean that
+        startup of interactive parallel jobs comprising thousands
+        ofprocesses is quick, that signals can be quickly delivered to
+        processes, and that stdin, stdout, and stderr are managed
+        intuitively. Our primary target is parallel machines made up of
+        clusters of SMPs, but the system is also useful in more tightly
+        integrated environments. We describe how MPD enablesfast startup
+        and convenient runtime management of parallel jobs. We show how
+        close control of stdio can support the easy implementation of a
+        number of convenient system utilities, even a parallel debugger.
+        We describe a simple but general interface that can be used to
+        separate any process manager from a parallel library, which we
+        use to keep MPD separate from MPICH.}
+}
+
+@InProceedings{Caglar:2003:USFMPI,
+  author =       {S. G. Caglar and G. D. Benson and Q. Huang and C. Chu},
+  title =        {{USFMPI}: A Multi-threaded Implementation of {MPI} for 
+                 Linux Clusters},
+  booktitle =    {Proceedings of the 15th IASTED International Conference on
+                  Parallel and Distributed Computing and Systems},
+  month =        {December},
+  year =         2003,
+  address =      {Marina del Rey, CA}
+}
+
+@InProceedings{Coti:2006:Checkpointing,
+  title =	"Blocking vs. non-blocking coordinated checkpointing for                     
+             large-scale fault tolerant {MPI}",
+  author =	"Camille Coti and Thomas H{\'e}rault and Pierre
+		 Lemarinier and Laurence Pilard and Ala Rezmerita and
+		 Eric Rodriguez and Franck Cappello",
+  publisher =	"ACM Press",
+  year = 	"2006",
+  bibdate =	"2007-02-14",
+  booktitle =	"SC",
+  ISBN = 	"0-7695-2700-0",
+  pages =	"127",
+  URL =  	"http://doi.acm.org/10.1145/1188455.1188587",
+}
+
+@Book{Pacheco:1997:PPM,
+  author =	"Peter S. Pacheco",
+  title =	"Parallel programming with {MPI}",
+  publisher =	"Morgan Kaufmann Publishers",
+  address_x =	"pub-MORGAN-KAUFMANN:adr",
+  pages_x =	"xxii + 418",
+  year = 	"1997",
+  ISBN_x = 	"1-55860-339-5",
+  isbn-13_x =	"978-1-55860-339-4",
+  LCCN_x = 	"QA76.642 .P3 1997",
+  bibdate_x =	"Fri Feb 04 17:32:19 2000",
+  acknowledgement = "Nelson H. F. Beebe, University of Utah, Department
+		 of Mathematics, 110 LCB, 155 S 1400 E RM 233, Salt Lake
+		 City, UT 84112-0090, USA, Tel: +1 801 581 5254, FAX: +1
+		 801 581 4148, e-mail: \path|beebe@math.utah.edu|,
+		 \path|beebe@acm.org|, \path|beebe@computer.org|
+		 (Internet), URL:
+		 \path|http://www.math.utah.edu/~beebe/|",
+}
+
+@Article{Thakur:2005:OptCol,
+ author    = "R. Thakur and R. Rabenseifner and W. Gropp",
+ title     = "Optimization of Collective Communication Operations in {MPICH}",
+ journal   = "International Journal on High Performance Computing                 
+              Applications",
+ volume    = "19",
+ number    = "1",
+ year      = "1999",
+ pages     = "49--66",
+ publisher = "Springer",
+}
+
+@Misc{MPI-Forum,
+  key =  	{MPI},
+  note =        {\url{http://mpi-forum.org/}},
+  title =	{{M}essage {P}assing {I}nterface ({MPI}) {F}orum Home Page},
+}
+

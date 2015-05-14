@@ -1,0 +1,65 @@
+\documentclass[times,twocolumn]{article}
+\usepackage{latex8}
+\usepackage{pslatex}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{float}
+\usepackage{epsfig}
+
+\newcommand{\displaycodesize}{\footnotesize}
+
+% Some useful macros
+% Multiline comments
+\long\def\com#1{}
+
+\floatstyle{boxed}
+\newfloat{code}{thp}{lop}
+\floatname{code}{Code}
+
+\floatstyle{ruled}
+\newfloat{listing}{thp}{lop}
+\floatname{listing}{Listing}
+
+% Document configuration
+
+\title{MicroSpark and SparkDriverless}
+\author{Wanzhang Sheng \\
+    Hao Chen \\
+    Minglu Ma \\
+    University of San Francisco\\
+    \today \\
+}
+
+\com{
+\renewcommand{\subsection}{\@startsection
+  {section}%
+  {2}%
+  {0mm}%
+  {-\baselineskip}%
+  {0.5\baselineskip}%
+  {\normalfont\largesize\bold}}
+}%\com
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\input{abstract}
+\input{introduction}
+\input{background}
+\input{interface}
+\input{implementation}
+\input{spark_driverless}
+\input{conclusions}
+
+
+%\small
+\bibliographystyle{latex8}
+\bibliography{river,python,java,mpi,pl,os,networking,hpc,ft}
+
+\end{document}
+
+

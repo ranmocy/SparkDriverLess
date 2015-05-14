@@ -1,0 +1,116 @@
+% networking.bib
+%
+% References for topics in Computer Networks
+% - Interfaces
+% - Protocols
+% - Standards
+
+@Misc{RFC4122,
+  author =	"Paul J. Leach and Michael Mealling and Richard Salz",
+  title =	"A Universally Unique {ID}entifier ({UUID}) {URN}
+		 Namespace",
+  howpublished = "Internet proposed standard RFC 4122",
+  month =	jul,
+  year = 	"2005",
+  topic =	"urn[0.7] uuid[0.8]",
+  abstract =	"This specification defines a Uniform Resource Name
+		 namespace for UUIDs (Universally Unique IDentifier),
+		 also known as GUIDs (Globally Unique IDentifier). A
+		 UUID is 128 bits long, and can guarantee uniqueness
+		 across space and time. UUIDs were originally used in
+		 the Apollo Network Computing System and later in the
+		 Open Software Foundation's (OSF) Distributed Computing
+		 Environment (DCE), and then in Microsoft Windows
+		 platforms. This specification is derived from the DCE
+		 specification with the kind permission of the OSF (now
+		 known as The Open Group). Information from earlier
+		 versions of the DCE specification have been
+		 incorporated into this document.",
+}
+ 
+@Misc{RFC826,
+  author =	"David C. Plummer",
+  title =	"Ethernet Address Resolution Protocol",
+  howpublished = "Internet proposed standard RFC 4122",
+  month =	nov,
+  year = 	"1982",
+  topic =	"urn[0.7] uuid[0.8]",
+  abstract =	"The implementation of protocol P on a sending host S
+		 decides, through protocol P's routing mechanism, that it 
+		 wants to transmit to a target host T located some place on a 
+		 connected piece of 10Mbit Ethernet cable.  To actually 
+		 transmit the Ethernet packet a 48.bit Ethernet address must 
+		 be generated.  The addresses of hosts within protocol P are 
+		 not always compatible with the corresponding Ethernet address 
+		 (being different lengths or values).  Presented here is a 
+		 protocol that allows dynamic distribution of the information 
+		 needed to build tables to translate an address A in protocol 
+		 P's address space into a 48.bit Ethernet address.",
+}
+
+@Misc{RFC0826,
+  author =       "D. C. Plummer",
+  title =        "{RFC 826}: {Ethernet Address Resolution Protocol}: Or
+                 converting network protocol addresses to 48.bit
+                 {Ethernet} address for transmission on {Ethernet}
+                 hardware",
+  day =          "1",
+  month =        nov,
+  year =         "1982",
+  bibdate =      "Thu Oct 16 09:34:09 MDT 1997",
+  note =         "Status: STANDARD.",
+  URL =          "ftp://ftp.internic.net/rfc/rfc826.txt,
+                 ftp://ftp.math.utah.edu/pub/rfc/rfc826.txt",
+  acknowledgement = ack-nhfb,
+  format =       "TXT=22026 bytes",
+  online =       "yes",
+  status =       "STANDARD",
+} 
+
+@Book{Stevens:2004:UNP,
+  author =	"W. Richard Stevens and Bill Fenner and Andrew M.
+		 Rudoff",
+  title =	"{UNIX} network programming: The Sockets Networking
+		 {API}",
+  volume =	"1",
+  publisher =	"Pren{\-}tice-Hall PTR",
+  edition =	"Third",
+  pages =	"xxiii +991",
+  year = 	"2004",
+  ISBN = 	"0-13-141155-1",
+}
+
+@Book{Birman:2005:RDS,
+  author =	"Kenneth P. Birman",
+  title =	"Reliable Distributed Systems: Technologies, Web Services,
+		 and Applications",
+  publisher =	"Springer",
+  edition =	"First",
+  pages =	"xv +668",
+  year = 	"2005",
+  ISBN = 	"0-387-21509-3",
+}
+
+@Misc{GM,
+  key =  	{GM},
+  note = 	{\url{http://www.myri.com/scs/GM-2/doc/html/}},
+  title =	{{GM}: A message-passing system for {Myrinet} networks},
+}
+
+@Misc{Verbs,
+  key =  	{Verbs},
+  note =	{\url{http://www-linux.gsi.de/~mbs/fair/docs/MellanoxVerbsAPI.pdf}},
+  title =	{Mellanox {IB-Verbs} {API} ({VAPI})},
+}
+
+@Misc{Infiniband,
+  key =  	{Infiniband},
+  note =	{\url{http://www.mellanox.com/pdf/whitepapers/IB_Intro_WP_190.pdf}},
+  title =	{Introduction to {Infiniband}},
+}
+
+@Misc{ttcp,
+  key =  	{{TTCP}},
+  note =	{\url{http://sd.wareonearth.com/~phil/net/ttcp/}},
+  title =	{Test {TCP}},
+}
