@@ -1,6 +1,6 @@
 
 MAIN      = main
-BIBINPUTS = bibs
+BIBINPUTS = .
 
 CLEANFILES = *~ *.aux *.log *.bbl *.blg *.dvi *.ps *.pdf
 
