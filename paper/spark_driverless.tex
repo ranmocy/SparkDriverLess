@@ -1,11 +1,7 @@
 %!TEX root = main.tex
 
-\section{Spark Driver-less} % (fold)
-\label{sec:spark_driver_less}
-
-
-\subsection{Background} % (fold)
-\label{sub:background_driver_less}
+\section{Background} % (fold)
+\label{sec:background}
 
 The original Spark model is a centralized system.
 Client send job to the driver, and driver will split into tasks and send to multiple workers.
@@ -14,11 +10,11 @@ If any worker is failed, the driver will notice it and react to the failure, suc
 Driver is efficient on computation, but also introduces a disadvantage to the cluster, single point failure.
 It's hard and slow to recover the driver node, and the system becomes unavailable during this time.
 
-% subsection background_driver_less (end)
+% section background (end)
 
 
-\subsection{Introduction} % (fold)
-\label{sub:introduction_driver_less}
+\section{Introduction} % (fold)
+\label{sec:introduction}
 
 Spark Driver-less is a new model of distributed computation system based on Resilient Distributed Datasets (RDD)\cite{rdd} model.
 There is no driver in the cluster, instead, only workers and clients.
@@ -28,11 +24,11 @@ and communicate by sending message.
 Spark Driver-less uses similar idea that let each worker or client runs on its own node,
 and communicate by broadcast messages.
 
-% subsection introduction_driver_less (end)
+% section introduction (end)
 
 
-\subsection{Terms} % (fold)
-\label{sub:terms_driver_less}
+\section{Terms} % (fold)
+\label{sec:terms}
 
 
 \begin{description}
@@ -81,14 +77,14 @@ and communicate by broadcast messages.
     Broadcast target partitions as a Job.
 \end{description}
 
-% subsection terms_driver_less (end)
+% section terms (end)
 
 
-\subsection{Implementation} % (fold)
-\label{sub:implementation_driver_less}
+\section{Implementation} % (fold)
+\label{sec:implementation}
 
-\subsubsection{Client} % (fold)
-\label{ssub:client}
+\subsection{Client} % (fold)
+\label{sub:client}
 Client accepts user's input. It's a lazy interactive console.
 User would define their RDD lineage. But until any action is called, there is no real computation at all.
 It will record down the parent RDD and the function or other parameters related to the RDDs\@.
@@ -110,10 +106,10 @@ because these partitions are the ones that the user really care about, not those
 Finally, it will keep discovering for the finished Partitions of these jobs.
 And fetch them back to local when find them available in the cluster.
 Merge the results of those partitions and return final result to the user.
-% subsubsection client (end)
+% subsection client (end)
 
-\subsubsection{Worker} % (fold)
-\label{ssub:worker}
+\subsection{Worker} % (fold)
+\label{sub:worker}
 When the Job Discoverer of a Worker finds a job broadcasted in the cluster,
 it will connect back to the source and retrieve the corresponding Partition object back,
 and add it to the Worker's Jobs queue.
@@ -133,30 +129,31 @@ If any parent partition is missing, it will wrap them as a Job and broadcast it.
 Then suspend the current job by appending it to the end of the jobs queue.
 If all parent partitions are done, the worker will compute the current job, since all the dependencies are local now.
 And put it into Partition Broadcaster to announce that the partition is finished in the cluster.
-% subsubsection worker (end)
+% subsection worker (end)
 
-\subsubsection{Broadcaster} % (fold)
-\label{ssub:broadcaster}
+\subsection{Broadcaster} % (fold)
+\label{sub:broadcaster}
 TODO: worker broadcaster is only for optimization of \emph{num\_of\_partitions}
-% subsubsection broadcaster (end)
-% subsection implementation_driver_less (end)
+% subsection broadcaster (end)
+
+% section implementation (end)
 
 
-\subsection{Guarantee} % (fold)
-\label{sub:guarantee}
+\section{Guarantee} % (fold)
+\label{sec:guarantee}
 
-\subsubsection{Accomplishment} % (fold)
-\label{ssub:accomplishment}
+\subsection{Accomplishment} % (fold)
+\label{sub:accomplishment}
 TODO
-% subsubsection accomplishment (end)
+% subsection accomplishment (end)
 
-% subsection guarantee (end)
+% section guarantee (end)
 
 
-\subsection{Future Work} % (fold)
-\label{sub:future_work_on_driver_less}
+\section{Future Work} % (fold)
+\label{sec:future_work}
 1. GEvent is not enough, true thread model is better.
-% subsection future_work_on_driver_less (end)
+% section future_work (end)
 
 
-% section spark_driver_less (end)
+% section spark (end)
