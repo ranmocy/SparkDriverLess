@@ -1,3 +1,5 @@
+%!TEX root = main.tex
+
 \section{Spark Driver-less} % (fold)
 \label{sec:spark_driver_less}
 
@@ -18,7 +20,7 @@ It's hard and slow to recover the driver node, and the system becomes unavailabl
 \subsection{Introduction} % (fold)
 \label{sub:introduction_driver_less}
 
-Spark Driver-less is a new model of distributed computation system based on RDD \cite{rdd} model.
+Spark Driver-less is a new model of distributed computation system based on Resilient Distributed Datasets (RDD)\cite{rdd} model.
 There is no driver in the cluster, instead, only workers and clients.
 They communicate with each other by broadcast.
 In programming language, actor model describes a cooperation model that each object runs on its own thread,
@@ -137,13 +139,19 @@ And put it into Partition Broadcaster to announce that the partition is finished
 \label{ssub:broadcaster}
 TODO: worker broadcaster is only for optimization of \emph{num\_of\_partitions}
 % subsubsection broadcaster (end)
-
 % subsection implementation_driver_less (end)
 
-\subsubsection{Guarantee} % (fold)
-\label{ssub:guarantee}
-TODO: job will eventually be finished.
-% subsubsection guarantee (end)
+
+\subsection{Guarantee} % (fold)
+\label{sub:guarantee}
+
+\subsubsection{Accomplishment} % (fold)
+\label{ssub:accomplishment}
+TODO
+% subsubsection accomplishment (end)
+
+% subsection guarantee (end)
+
 
 \subsection{Future Work} % (fold)
 \label{sub:future_work_on_driver_less}
