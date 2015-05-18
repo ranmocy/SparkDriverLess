@@ -1,0 +1,14 @@
+%!TEX root = main.tex
+
+\section{Introduction} % (fold)
+\label{sec:introduction}
+
+Spark Driver-less is a new model of distributed computation system based on Resilient Distributed Datasets (RDD)\cite{rdd} model.
+There is no driver in the cluster, instead, only workers and clients.
+They communicate with each other by broadcast.
+In programming language, actor model describes a cooperation model that each object runs on its own thread,
+and communicate by sending message.
+Spark Driver-less uses similar idea that let each worker or client runs on its own node,
+and communicate by broadcast messages.
+
+% section introduction (end)

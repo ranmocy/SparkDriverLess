@@ -1,0 +1,13 @@
+%!TEX root = main.tex
+
+\section{Background} % (fold)
+\label{sec:background}
+
+The original Spark model is a centralized system.
+Client send job to the driver, and driver will split into tasks and send to multiple workers.
+When worker finishes the task, it will send it back to driver.
+If any worker is failed, the driver will notice it and react to the failure, such at recompute on other workers.
+Driver is efficient on computation, but also introduces a disadvantage to the cluster, single point failure.
+It's hard and slow to recover the driver node, and the system becomes unavailable during this time.
+
+% section background (end)
