@@ -1,65 +1,31 @@
 \documentclass[twocolumn]{article}
 \usepackage{latex8}
 \usepackage{pslatex}
-\usepackage{url}
-\usepackage{verbatim}
 \usepackage{graphicx}
-\usepackage{graphics}
-\usepackage{float}
-\usepackage{epsfig}
-
-\newcommand{\displaycodesize}{\footnotesize}
-
-% Some useful macros
-% Multiline comments
-\long\def\com#1{}
-
-\floatstyle{boxed}
-\newfloat{code}{thp}{lop}
-\floatname{code}{Code}
-
-\floatstyle{ruled}
-\newfloat{listing}{thp}{lop}
-\floatname{listing}{Listing}
-
-% Document configuration
 
 \title{MicroSpark and SparkDriverless}
 \author{Wanzhang Sheng \\
-    Hao Chen \\
-    Minglu Ma \\
-    University of San Francisco\\
-    \today \\
+Hao Chen \\
+Minglu Ma \\
+University of San Francisco\\
+\today \\
 }
-
-\com{
-\renewcommand{\subsection}{\@startsection
-  {section}%
-  {2}%
-  {0mm}%
-  {-\baselineskip}%
-  {0.5\baselineskip}%
-  {\normalfont\largesize\bold}}
-}%\com
 
 \begin{document}
 
 \maketitle
-\thispagestyle{empty}
 
 \input{abstract}
-\input{background}
 \input{introduction}
+\input{background}
 \input{micro_spark}
 \input{terms}
 \input{spark_driverless}
 \input{guarantee}
 \input{future}
 
-%\small
+\small
 \bibliographystyle{latex8}
 \bibliography{spark}
 
 \end{document}
-
-
