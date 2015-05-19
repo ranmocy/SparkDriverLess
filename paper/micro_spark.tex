@@ -34,7 +34,7 @@ The design of the failover if pretty simple. When a worker failure happened. Dri
 We will split the lineage based on the repartition as showed in Figure~\ref{fig:stage_split}. After the stage split each stage will be a narrow dependency stage except the repartition stage. So we can pipeline the execution for each stage.
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.45\textwidth]{stage_split.png}
+    \includegraphics[width=0.45\textwidth]{images/stage_split.png}
     \caption{Stage Split}\label{fig:stage_split}
 \end{figure}
 % subsection stage_split (end)
@@ -45,7 +45,7 @@ The real execution process is to transform from one RDD to another and then exec
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.45\textwidth]{execution_flow.png}
+    \includegraphics[width=0.45\textwidth]{images/execution_flow.png}
     \caption{Execution Flow}\label{fig:execution_flow}
 \end{figure}
 

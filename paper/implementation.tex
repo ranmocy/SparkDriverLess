@@ -10,7 +10,7 @@ User would define their RDD lineage. But until any action is called, there is no
 It will record down the parent RDD and the function or other parameters related to the RDDs\@.
 If it's a wide dependency, it will first create a Repartition RDD between itself and its parent.
 
-When user called a action, Client will firstly create the Partition lineage based on the given RDD lineage.
+When user called a action, Client will firstly create the Partition lineage based on the given RDD lineage as Figure~\ref{fig:partition_lineage}.
 Any Partition will only have the dependency links to the partitions it needs in the parent RDD\@.
 If it's a narrow dependency, it will only have one dependency partition.
 And if it's a wide dependency, it will depend on multiple ones.
@@ -27,6 +27,12 @@ Finally, it will keep discovering for the finished Partitions of these jobs.
 And fetch them back to local when find them available in the cluster.
 Merge the results of those partitions and return final result to the user.
 % subsection client (end)
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{images/partition_lineage.png}
+    \caption{RDD Lineage to Partition Lineage}\label{fig:partition_lineage}
+\end{figure}
 
 \subsection{Worker} % (fold)
 \label{sub:worker}
