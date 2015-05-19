@@ -3,12 +3,21 @@
 \section{Introduction} % (fold)
 \label{sec:introduction}
 
-Spark Driver-less is a new model of distributed computation system based on Resilient Distributed Datasets (RDD)\cite{rdd} model.
+Spark Driver-less is a new model of distributed computation system based on
+Resilient Distributed Datasets (RDD)\cite{rdd} model.
 There is no driver in the cluster, instead, only workers and clients.
 They communicate with each other by broadcast.
 In programming language, actor model describes a cooperation model that each object runs on its own thread,
 and communicate by sending message.
 Spark Driver-less uses similar idea that let each worker or client runs on its own node,
 and communicate by broadcast messages.
+
+Hao Chen and Minglu Ma finished MicroSpark, which is a subset of the original Spark.
+It will be discussed in Section~\ref{sec:microspark}.
+Wanzhang Sheng finished SparkDriverless, which is the new approach of Spark model.
+Some basic terms is listed in Section~\ref{sec:terms}.
+Detailed implementation and work flow is described in Section~\ref{sec:implementation}.
+Some analyses is discussed in Section~\ref{sec:guarantee}.
+And Section~\ref{sec:future_work} discusses some further works.
 
 % section introduction (end)
