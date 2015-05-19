@@ -3,6 +3,10 @@
 \usepackage{hyperref}
 \usepackage{pslatex}
 \usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{listings}
+
+\newcommand{\e}[1]{\ensuremath{\times 10^{#1}}}
 
 \title{SparkDriverless and MicroSpark}
 \author{Wanzhang Sheng \\
@@ -21,9 +25,10 @@ University of San Francisco\\
 \input{background}
 \input{terms}
 \input{implementation}
-\input{guarantee}
+\input{analyses}
 \input{future}
 \input{micro_spark}
+\input{appendix}
 
 \small
 \bibliographystyle{latex8}

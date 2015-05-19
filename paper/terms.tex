@@ -27,7 +27,7 @@
     \item[Partition] \hfill \\
     Partition is a slice of the RDD, which will be sent to a single worker to compute.
     It has a \emph{part\_id} for the index in the RDD,
-    a \emph{uuid} generated from its get function,
+    a \emph{uuid} generated from the hash of its bounded function,
     a \emph{parent\_list} of dependent Partitions list,
     and a \emph{func} for computation.
 
