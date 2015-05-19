@@ -15,7 +15,7 @@ Any Partition will only have the dependency links to the partitions it needs in 
 If it's a narrow dependency, it will only have one dependency partition.
 And if it's a wide dependency, it will depend on multiple ones.
 By limiting the reference inside Partition object,
-it becomes easy to dump the partition object by CloudPickle (TODO cite) without introduce any unnecessary object,
+it becomes easy to dump the partition object by CloudPickle\cite{cloudpickle} without introduce any unnecessary object,
 which will reduce data transferring and dump failure.
 
 Secondly, for every partition in the final target RDD, the client will create a job for it.
