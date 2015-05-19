@@ -43,11 +43,15 @@
     Worker is a computation process on an arbitrary node.
     It has a Job Discoverer, Job Broadcaster, Partition Discoverer, and Partition Broadcaster.
 
+    It is also a Service with a random uuid as its name.
+    But it is only used by Client to optimize \emph{num\_of\_partitions}.
+
     \item[Client] \hfill \\
     Client is a interactive console for user to compute in the cluster.
     All computation is lazy.
     It creates RDD lineage and transform it into Partition lineage.
     Broadcast target partitions as a Job.
+    It keeps discovering Workers in the cluster, and uses the number of workers as \emph{num\_of\_partitions} when it is creating Partition lineage.
 \end{description}
 
 % section terms (end)

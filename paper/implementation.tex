@@ -53,7 +53,12 @@ And put it into Partition Broadcaster to announce that the partition is finished
 
 \subsection{Broadcaster} % (fold)
 \label{sub:broadcaster}
-TODO: worker broadcaster is only for optimization of \emph{num\_of\_partitions}
+Broadcast system is based on UDP broadcast.
+One side of broadcasters and discoverers will keep sending packages starts with a magic prefix string,
+to a predefined multi-cast address.
+The other side will keep receiving packages from that address and filter packages with the magic prefix string.
+
+A python wrapper called MinusConf\cite{minusconf} is used with gevent monkey-patching.
 % subsection broadcaster (end)
 
 % section implementation (end)
