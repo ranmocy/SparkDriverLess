@@ -2,5 +2,10 @@
 
 \section{Future Work} % (fold)
 \label{sec:future_work}
-1. GEvent is not enough, true thread model is better.
+Python has no real parallel thread system.
+Currently Spark Driverless uses gevent for concurrency.
+But it get stuck in the gevent thread of taking job out of the queue,
+rather than jobs discovering.
+It is not sure whether it is due to gevent or minusconf.
+Further research is required to achieve better performance.
 % section future_work (end)

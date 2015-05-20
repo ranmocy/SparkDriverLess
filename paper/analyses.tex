@@ -21,15 +21,16 @@ However, it's very rare to have a conflict.
 Consider the bits of the hash is $l$, then the total hash space has $m=2^l$ numbers.
 And random pick $n$ ids from it.
 Then it's a pigeonhole problem\cite{pigeonhole} with $m$ and $n$.
-The likelihood to have a conflict is:
-$$P(x) = 1 - \frac{{(m)}_n}{m^n} = 1 - \prod\limits_{k = 1}^n\frac{m - k + 1}{m}$$
-If given $l=64$ and $n=10^6$, the likelihood is:
+The likelihood of having a conflict is:
+$$P(x) = 1 - \frac{{(m)}_{n}}{m^{n}} = 1 - \prod\limits_{k = 1}^n\frac{m - k + 1}{m}$$
+If given $l=64$ and $n=10^5$, which means 64 bits hash function and $10^5$ partitions at the same time.
+Then the likelihood of having a conflict is:
 
 \begin{align*}
 1 - P(x) &= \prod\limits_{k = 1}^n\frac{m - k + 1}{m} \\
 \ln(1 - P(x)) &= \ln(\prod\limits_{k = 1}^n\frac{m - k + 1}{m}) \\
-&= \sum\limits_{k = 1}^n(\ln(m-k+1) - \ln(m)) \\
-&= \sum\limits_{k=1}^{10^5}(\ln(2^{64}-k+1) - \ln(2^{64})) \\
+&= \sum\limits_{k = 1}^n(\ln(m - k + 1) - \ln(m)) \\
+&= \sum\limits_{k = 1}^{10^5}(\ln(2^{64} - k + 1) - \ln(2^{64})) \\
 &= -1.39698\e{-9} \\
 P(x) &= 1 - e^{-1.39698\e{-9}} \\
 &= 2.71048\e{-10}
@@ -70,24 +71,31 @@ However, there are several ways to expire the partitions:
     \item Add a time-stamp to the function closure.
     So that the UUID will be changed.
     This also guarantees expiring partitions.
-    \item Broadcast
+    \item Broadcast to tell workers to expire a certain partition.
+    However, this can't guarantee to expire without any further mechanism.
 \end{enumerate}
 % subsection data_expiration (end)
 
 \subsection{Lazy} % (fold)
 \label{sub:lazy}
-
+There is not any computation until any worker or client requires it.
+The work flow and data flow is not planned ahead but determined just in time.
 % subsection lazy (end)
 
 \subsection{Decentralization} % (fold)
 \label{sub:decentralization}
-
+Spark Driverless is totally decentralized.
+Decentralization means no single point failure.
+And all nodes dynamically find each others in runtime.
+So that the cluster becomes easy to maintain, since no configuration is required at all.
 % subsection decentralization (end)
 
 \subsection{Fault Tolerant} % (fold)
 \label{sub:fault_tolerant}
-Achieve it without code about it.
+There is no code directly related to fault tolerant.
+Fault tolerant comes from the nature of the combination of
+stateless dataset, lazy evaluation, and decentralization.
+There is no difference between a normal evaluation and a fault recovery.
 % subsection fault_tolerant (end)
-
 
 % section analyses (end)
